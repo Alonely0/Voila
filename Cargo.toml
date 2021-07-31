@@ -21,7 +21,7 @@ exclude = [
 categories = ["command-line-utilities", "compilers"]
 keywords = [
     "files",
-    "domain-specific-language",
+    "domain-specific-lang",
     "command-line-utilities",
     "compilers",
     "cli",
