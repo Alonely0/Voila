@@ -22,7 +22,7 @@ categories = ["command-line-utilities", "compilers"]
 keywords = [
     "files",
     "domain-specific-lang",
-    "command-line-utilities",
+    "command-line-utils",
     "compilers",
     "cli",
 ]
