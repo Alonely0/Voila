@@ -1,0 +1,51 @@
+cargo-features = ["edition2021"]
+
+[package]
+name = "voila"
+description = "A tool for doing complex operations to files and directories."
+author = "Guillem Jara <4lon3ly0@tutanota.com>"
+license = "MIT"
+readme = "README.md"
+documentation = "https://github.com/Alonely/voila/wiki"
+homepage = "https://github.com/Alonely/voila/"
+repository = "https://github.com/Alonely/voila/"
+version = "1.0.0"
+edition = "2021"
+exclude = [
+    "ROADMAP.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "target",
+    ".*",
+]
+categories = ["command-line-utilities", "compilers"]
+keywords = [
+    "voila",
+    "files",
+    "folders",
+    "language",
+    "domain-specific-language",
+    "command-line-utilities",
+    "library",
+    "compilers",
+    "cli",
+]
+
+[dependencies]
+md5 = "0.7.0"
+sha256 = "1.0.2"
+path-absolutize = "3.0.10"
+walkdir = "2.3.2"
+regex = "1.5.4"
+structopt = "0.3.21"
+logos = "0.12.0"
+evalexpr = "6.3.0"
+async-trait = "0.1.50"
+rayon = "1.5.1"
+futures = "0.3"
+fs_extra = "1.2.0"
+byte-unit = "4.0.12"
+async-stream = "0.3.2"
+futures-util = "0.3.16"
+futures-core = "0.3.16"
+chrono = "0.4.19"
