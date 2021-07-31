@@ -20,13 +20,9 @@ exclude = [
 ]
 categories = ["command-line-utilities", "compilers"]
 keywords = [
-    "voila",
     "files",
-    "folders",
-    "language",
     "domain-specific-language",
     "command-line-utilities",
-    "library",
     "compilers",
     "cli",
 ]
