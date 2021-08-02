@@ -3,12 +3,8 @@ name: MacOS build
 on:
   push:
     branches: [main]
-    paths:
-      - "src"
   pull_request:
     branches: [main]
-    paths:
-      - "src"
 
 jobs:
   check:
