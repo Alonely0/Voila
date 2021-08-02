@@ -25,13 +25,11 @@ impl Conditionals for super::Interpreter {
             // no? return me the original object
             let val1 = Literal {
                 kind: self.get_var_if_any(&conditional.val1).unwrap().kind,
-                content: self
-                    .trim_spaces(&self.get_var_if_any(&conditional.val1).unwrap().content),
+                content: self.trim_spaces(&self.get_var_if_any(&conditional.val1).unwrap().content),
             };
             let val2 = Literal {
                 kind: self.get_var_if_any(&conditional.val2).unwrap().kind,
-                content: self
-                    .trim_spaces(&self.get_var_if_any(&conditional.val2).unwrap().content),
+                content: self.trim_spaces(&self.get_var_if_any(&conditional.val2).unwrap().content),
             };
 
             // evaluate operators
@@ -47,9 +45,9 @@ impl Conditionals for super::Interpreter {
                 _ => false,
             };
 
-            if i == 0 {
+            full_conditional = if i == 0 {
                 // if is the first conditional, the format is `VAL RELA`
-                full_conditional = match conditional.next_conditional_relationship {
+                match conditional.next_conditional_relationship {
                     CondRelationship::And => format!("{} &&", cond_result),
                     CondRelationship::Any => format!("{} ||", cond_result),
                     _ => format!("{}", cond_result),
@@ -57,25 +55,24 @@ impl Conditionals for super::Interpreter {
             } else {
                 // if it has another conditional behind, the format is
                 // `COND VAL RELA?`
-                full_conditional = match conditional.next_conditional_relationship {
+                match conditional.next_conditional_relationship {
                     CondRelationship::And => format!("{} {} &&", &full_conditional, cond_result),
                     CondRelationship::Any => format!("{} {} ||", &full_conditional, cond_result),
                     _ => format!("{} {}", &full_conditional, cond_result),
                 }
-            }
+            };
         }
         // get final result
         let conditional_result = self.eval_relationships(full_conditional.clone());
         println_on_debug!("    Conditional [ {} ]", full_conditional);
         println_on_debug!("    Result [ {} ]", conditional_result);
 
-        // return it
-        return conditional_result;
+        conditional_result
     }
 
     fn eval_relationships(&self, cond: String) -> bool {
         // im not doing another lexer & another parser just for evaluating relationships,
         // and "evalexpr" library is pretty nice and gets the job done, so I wont change it
-        return eval(&cond).unwrap().as_boolean().unwrap();
+        eval(&cond).unwrap().as_boolean().unwrap()
     }
 }

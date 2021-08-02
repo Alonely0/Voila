@@ -57,12 +57,12 @@ pub fn parse(tokens: Vec<super::lexer::Token>) -> AST {
     };
     println_on_debug!("  {:#?}", &abstract_syntax_tree);
     println_on_debug!("Parser ended\n");
-    return abstract_syntax_tree;
+    abstract_syntax_tree
 }
 
 impl Parser {
     pub fn new(tokens: Tokens) -> Self {
-        return Self {
+        Self {
             tokens: tokens,
             position: 0usize,
 
@@ -77,6 +77,6 @@ impl Parser {
             current_function: "".to_string(),
             current_function_args: vec![],
             parsing_args: false,
-        };
+        }
     }
 }

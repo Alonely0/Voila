@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 extern crate md5;
 extern crate sha256;
 
@@ -8,21 +10,15 @@ use std::process;
 
 fn get_sum_of(file: &String, sum: SumTypes) -> Result<String, String> {
     let bytes = read_bytes_of_file(file);
-    println!("{:?}", sum);
-    if sum == SumTypes::Sha256 {
-        println!("sha256");
-        return Ok(sha256::digest_bytes(bytes));
-    } else {
-        println!("md5");
-        return Ok(format!("{:x}", md5::compute(bytes)));
+    match sum {
+        SumTypes::Md5 => Ok(format!("{:x}", md5::compute(bytes))),
+        SumTypes::Sha256 => Ok(sha256::digest_bytes(bytes)),
     }
 }
 
 fn read_bytes_of_file<'a>(path: &String) -> &'a [u8] {
     let buffer = "";
-    let file = panic::catch_unwind(|| {
-        return File::open(path).unwrap();
-    });
+    let file = panic::catch_unwind(|| File::open(path).unwrap());
     match file {
         Ok(mut f) => f
             .read_to_string(&mut String::from(buffer))
@@ -35,7 +31,7 @@ fn read_bytes_of_file<'a>(path: &String) -> &'a [u8] {
             process::exit(1)
         }
     };
-    return buffer.as_bytes();
+    buffer.as_bytes()
 }
 
 #[derive(PartialEq, Eq, Debug)]

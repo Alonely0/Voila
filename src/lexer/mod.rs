@@ -27,13 +27,13 @@ pub fn lex(source: &String) -> Vec<Token> {
         // prepare token values
         let t_type = format!("{:?}", t_type.unwrap());
         let mut t_value = format!("{}", tokens.slice());
-        match Some(&*t_type) {
-            Some("Var") => {
+        match t_type.as_str() {
+            "Var" => {
                 let mut t_value_chars = t_value.chars();
                 t_value_chars.next();
                 t_value = t_value_chars.as_str().to_string();
             }
-            Some("Rgx") => {
+            "Rgx" => {
                 let mut t_value_chars = t_value.chars();
                 t_value_chars.next();
                 t_value_chars.next_back();
@@ -49,7 +49,7 @@ pub fn lex(source: &String) -> Vec<Token> {
         parsable_tokens.push(parsable_token);
     }
     println_on_debug!("Lexer ended\n");
-    return parsable_tokens;
+    parsable_tokens
 }
 
 // Token list
