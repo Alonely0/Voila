@@ -1,8 +1,17 @@
-pub mod operators;
-
 use super::utils::regexp::RegExp;
 use super::{Literal, LiteralKind};
-pub use operators::Operators;
+
+pub trait Operators {
+    // Function operators
+    fn eq(&self, x: &Literal, y: &Literal) -> bool;
+    fn ne(&self, x: &Literal, y: &Literal) -> bool;
+    fn gt(&self, x: &Literal, y: &Literal) -> bool;
+    fn ge(&self, x: &Literal, y: &Literal) -> bool;
+    fn lt(&self, x: &Literal, y: &Literal) -> bool;
+    fn le(&self, x: &Literal, y: &Literal) -> bool;
+    fn re(&self, x: &Literal, y: &Literal) -> bool;
+    fn rn(&self, x: &Literal, y: &Literal) -> bool;
+}
 
 impl Operators for super::Interpreter {
     // Comparing bytes works better than the eval library

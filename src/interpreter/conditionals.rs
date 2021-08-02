@@ -1,14 +1,15 @@
-extern crate evalexpr;
-
-use super::super::parser::ast::*;
-use super::operators::Operators;
-use super::println_on_debug;
-use super::variables::Variables;
-use super::Literal;
-use super::Str;
-pub use conditionals::Conditionals;
 use evalexpr::eval;
-pub mod conditionals;
+
+use crate::parser::ast::*;
+
+use super::operators::Operators;
+use super::variables::Variables;
+use super::{println_on_debug, Literal, Str};
+
+pub trait Conditionals {
+    fn eval_conditionals(&mut self) -> bool;
+    fn eval_relationships(&self, cond: String) -> bool;
+}
 
 impl Conditionals for super::Interpreter {
     fn eval_conditionals(&mut self) -> bool {

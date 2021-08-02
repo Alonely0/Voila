@@ -2,9 +2,6 @@
 #![feature(format_args_capture)]
 #![feature(decl_macro)]
 
-extern crate byte_unit;
-extern crate futures;
-
 use futures::executor::block_on;
 use macros::println_on_debug;
 
@@ -29,7 +26,7 @@ For more information see the README.\n
     );
 
     let tokens: Vec<lexer::Token> = lexer::lex(&cli_args.source);
-	
+
     let ast: parser::ast::AST = parser::parse(tokens);
     let interpreter = interpreter::run(ast, cli_args.dir, cli_args.recursive);
     block_on(interpreter); // wait interpreter to finish

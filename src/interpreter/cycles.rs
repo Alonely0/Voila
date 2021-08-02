@@ -1,13 +1,15 @@
-extern crate async_trait;
-extern crate rayon;
+use async_trait::async_trait;
+use rayon::prelude::*;
 
 use super::functions::Functions;
 use super::println_on_debug;
 use super::{Cycle, Func, Function};
-use async_trait::async_trait;
-pub use cycles::Cycles;
-use rayon::prelude::*;
-pub mod cycles;
+
+#[async_trait(?Send)]
+pub trait Cycles {
+    async fn exec_new_cycle(&mut self, operations: Cycle);
+    fn execute_operation(&self, function: &Function);
+}
 
 #[async_trait(?Send)]
 impl Cycles for super::Interpreter {

@@ -1,9 +1,5 @@
 extern crate chrono;
 
-pub mod variables;
-
-pub use variables::Variables;
-
 use std::ffi::OsString;
 use std::fs;
 #[cfg(unix)]
@@ -12,11 +8,14 @@ use std::path;
 use std::path::PathBuf;
 use std::time::SystemTime;
 
-use super::super::byte_unit;
-use super::utils::path::Path;
-use super::utils::SumTypes;
-use super::utils::{Str, Sum};
+use byte_unit;
+
+use super::utils::{path::Path, Str, Sum, SumTypes};
 use super::{Literal, LiteralKind};
+
+pub trait Variables {
+    fn get_var_if_any(&self, var: &Literal) -> Result<Literal, String>;
+}
 
 impl Variables for super::Interpreter {
     fn get_var_if_any(&self, var: &super::Literal) -> Result<Literal, String> {

@@ -1,12 +1,8 @@
 #![allow(dead_code)]
 
-extern crate md5;
-extern crate sha256;
-
 use std::fs::File;
 use std::io::prelude::*;
-use std::panic;
-use std::process;
+use std::{panic, process};
 
 fn get_sum_of(file: &String, sum: SumTypes) -> Result<String, String> {
     let bytes = read_bytes_of_file(file);
