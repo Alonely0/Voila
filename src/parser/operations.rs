@@ -1,8 +1,8 @@
-use super::Cycle;
-use super::Cycles;
-pub use operations::Operations;
+use super::{Cycle, Cycles};
 
-mod operations;
+pub trait Operations {
+    fn parse_operations(&mut self) -> Vec<super::Cycle>;
+}
 
 impl Operations for super::Parser {
     fn parse_operations(&mut self) -> Vec<Cycle> {
