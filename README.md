@@ -6,7 +6,7 @@ Voila is a domain-specific language designed for doing complex operations to fol
 
 
 ## Syntax
-`voila DIRECTORY "<@VARIABLE | STRING | /REGEXP/> OPERATOR <@VARIABLE | STRING | #REGEXP#> [|| | && ANOTHER_CONDITIONAL ...] {OPERATION1-CYCLE-1(ARG1 ARG1, ARG2) OPERATION2-CYCLE-1(ARG1 ARG2) ...; OPERATION1-CYCLE-2(ARG1, ARG2 ARG2, ARG3)...}"`
+`voila DIRECTORY "<@VARIABLE | STRING | #REGEXP#> OPERATOR <@VARIABLE | STRING | #REGEXP#> [|| | && ANOTHER_CONDITIONAL ...] {OPERATION1-CYCLE-1(ARG1 ARG1, ARG2) OPERATION2-CYCLE-1(ARG1 ARG2) ...; OPERATION1-CYCLE-2(ARG1, ARG2 ARG2, ARG3)...}"`
 
 Voila's syntax is composed of a traditional conditional/multi-conditional statement, followed by the operations, delimited within curly brackets. These are separated into cycles. A cycle is an iteration between all directory files, the operations in every cycle are executed in parallel, and cycles are executed consecutively. cycles are separated with `;`, and operations/functions arguments are separated with `,`. Variables' prefix is `@`, and its value changes to the file that is evaluating. Regular expressions are delimited between `#`. For a more intuitive explanation, go to the "Examples" section.
 
