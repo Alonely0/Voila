@@ -42,7 +42,7 @@ pub fn lex(source: &String) -> Vec<Token> {
             _ => {}
         }
 
-        //create a struct with the token
+        // create a struct with the token
         let parsable_token = Token::new(t_type, t_value);
 
         println_on_debug!("  {}", &parsable_token);
@@ -116,7 +116,7 @@ pub enum Tokens {
     Lbrace,
     #[token("}")]
     Rbrace,
-    #[regex(r#"(( )?[a-zA-Z0-9\$%^*\-_\+\[\]\\./:'"]+)([ a-zA-Z0-9\$%^*\-_\+\[\]\\./:';&"]+)*"#)]
+    #[regex(r#"(( )?[a-zA-Z0-9\$%^*\-_\+\[\]\\./:'"]+)([ a-zA-Z0-9\$%^*\-_\+\[\]\\./:';"]+)*"#)]
     Txt,
     #[error]
     #[regex(r"[ \t\n\f]+", logos::skip)]
