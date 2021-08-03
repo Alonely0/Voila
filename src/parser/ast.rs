@@ -87,7 +87,7 @@ impl Literal {
 }
 
 impl CondOperator {
-    pub fn from_name(name: String) -> Self {
+    pub fn from_name(name: &String) -> Self {
         match name.as_str() {
             "Equal" => CondOperator::Eq,
             "NEqual" => CondOperator::Ne,
@@ -103,7 +103,7 @@ impl CondOperator {
 }
 
 impl CondRelationship {
-    pub fn from_name(name: String) -> Self {
+    pub fn from_name(name: &String) -> Self {
         match name.as_str() {
             "And" => CondRelationship::And,
             "Any" => CondRelationship::Any,

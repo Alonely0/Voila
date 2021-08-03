@@ -48,7 +48,7 @@ impl Interpreter {
         for i in 0..self.__ast__.cycles.len() {
             if i == 0 && self.__ast__.cycles.len() <= 1 {}
             // load files
-            let file_generator = path::file_generator(self.clone());
+            let file_generator = path::file_generator(self.to_owned());
             pin_mut!(file_generator);
 
             while let Some(path) = file_generator.next().await {
@@ -57,7 +57,7 @@ impl Interpreter {
                 println_on_debug!("  File [ {} ]", &self.__file__);
 
                 // get cycle
-                let cycle = self.__ast__.cycles[i].clone();
+                let cycle = self.__ast__.cycles[i].to_owned();
 
                 // get if file matches the conditionals
                 if self.eval_conditionals() {

@@ -322,7 +322,7 @@ impl Variables for super::Interpreter {
             _ => {
                 let kind = LiteralKind::Str;
                 let content = if var.kind == LiteralKind::Var {
-                    format!("@{}", var.content.clone())
+                    format!("@{}", &var.content)
                 } else {
                     var.content.clone()
                 };

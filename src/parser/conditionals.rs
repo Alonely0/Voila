@@ -46,13 +46,13 @@ impl Conditionals for super::Parser {
                 println_on_debug!("  parsing oper, token {token}, next token {next_token}");
 
                 // if error, exit, else, continue. simple
-                self.oper = match CondOperator::from_name(token.tok_type.clone()) {
+                self.oper = match CondOperator::from_name(&token.tok_type) {
                     CondOperator::Er => {
                         self.raise_parse_error(
                             "UNEXPECTED TOKEN",
                             format!("Expected an operator, got {}", token.content),
                         );
-                        Some(CondOperator::from_name(token.tok_type.clone()))
+                        Some(CondOperator::from_name(&token.tok_type))
                     }
                     CondOperator::Re | CondOperator::Rn => {
                         if next_token.tok_type != "Rgx" && last_token.tok_type != "Rgx" {
@@ -61,13 +61,13 @@ impl Conditionals for super::Parser {
                                  format!(
                                      "Expected a different operator, {} is only for regular expressions. Consider using other operator, like == or !=", token.content))
                         }
-                        Some(CondOperator::from_name(token.tok_type.clone()))
+                        Some(CondOperator::from_name(&token.tok_type))
                     }
                     _ => {
                         if next_token.tok_type == "Rgx" || last_token.tok_type == "Rgx" {
                             self.raise_parse_error("UNEXPECTED TOKEN", format!("Expected a different operator, {} is not for regular expressions. Consider using other operator, like ~= or ~!", token.content))
                         }
-                        Some(CondOperator::from_name(token.tok_type.clone()))
+                        Some(CondOperator::from_name(&token.tok_type))
                     }
                 }
             } else if let None = self.val2 {
@@ -93,15 +93,15 @@ impl Conditionals for super::Parser {
                 println_on_debug!("  parsing rela, token {token}, next token {next_token}");
 
                 // if error, exit, else, continue. simple
-                self.rela = match CondRelationship::from_name(token.tok_type.clone()) {
+                self.rela = match CondRelationship::from_name(&token.tok_type) {
                     CondRelationship::Err => {
                         self.raise_parse_error(
                             "UNEXPECTED SYMBOL",
                             format!("Expected &&, || or {{, got {}", token.content),
                         );
-                        Some(CondRelationship::from_name(token.tok_type.clone()))
+                        Some(CondRelationship::from_name(&token.tok_type))
                     }
-                    _ => Some(CondRelationship::from_name(token.tok_type.clone())),
+                    _ => Some(CondRelationship::from_name(&token.tok_type)),
                 };
 
                 // we reached the end of this conditional, so we stop the loop

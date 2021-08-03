@@ -23,13 +23,13 @@ pub trait Functions {
     fn supervec_literals_to_args(&self, supervec: Vec<Vec<Literal>>) -> Args;
 
     // Functions definitions
-    fn r#print(&self, args: Args);
-    fn r#create(&self, args: Args);
-    fn r#mkdir(&self, args: Args);
-    fn r#delete(&self, args: Args);
-    fn r#move(&self, args: Args);
-    fn r#copy(&self, args: Args);
-    fn r#shell(&self, args: Args);
+    fn r#print(&self, args: &Args);
+    fn r#create(&self, args: &Args);
+    fn r#mkdir(&self, args: &Args);
+    fn r#delete(&self, args: &Args);
+    fn r#move(&self, args: &Args);
+    fn r#copy(&self, args: &Args);
+    fn r#shell(&self, args: &Args);
 }
 
 impl Functions for super::Interpreter {
@@ -41,7 +41,7 @@ impl Functions for super::Interpreter {
     // for making something that a function can deal with more easily.
     // Then, the best is to create directly a vector of strings, because
     // we do not care anymore about the type of the literal.
-    fn supervec_literals_to_args(&self, supervec: Vec<Vec<Literal>>) -> Args {
+    fn supervec_literals_to_args(&self, supervec: Vec<Vec<Literal>>) -> Vec<String> {
         let mut final_args: Args = vec![];
         for vec_of_literals in supervec {
             let mut literals_str = String::from("");
@@ -50,20 +50,20 @@ impl Functions for super::Interpreter {
 
                 literals_str = format!("{literals_str}{str}")
             }
-            final_args.push(literals_str.clone());
+            final_args.push(literals_str.to_owned());
         }
 
         final_args
     }
 
     // Functions definitions
-    fn r#print(&self, args: Args) {
+    fn r#print(&self, args: &Args) {
         // mitigate printing bottleneck by using only 1 print
         // context: i used to have a for loop
         println!("{}", args.join("\n"));
     }
 
-    fn r#create(&self, args: Args) {
+    fn r#create(&self, args: &Args) {
         if args.len() != 2 {
             self.raise_error(
                 "UNEXPECTED QUANTITY ARGUMENTS",
@@ -81,7 +81,7 @@ impl Functions for super::Interpreter {
         }
     }
 
-    fn r#mkdir(&self, args: Args) {
+    fn r#mkdir(&self, args: &Args) {
         for arg in args {
             match fs::create_dir_all(self.trim_spaces(&arg)) {
                 Err(err) => self.raise_error(
@@ -93,7 +93,7 @@ impl Functions for super::Interpreter {
         }
     }
 
-    fn r#delete(&self, args: Args) {
+    fn r#delete(&self, args: &Args) {
         for arg in args {
             let is_file: Result<bool, ()> = self.is_file(&self.trim_spaces(&arg));
 
@@ -128,15 +128,15 @@ impl Functions for super::Interpreter {
         }
     }
 
-    fn r#move(&self, args: Args) {
+    fn r#move(&self, args: &Args) {
         // moving is literally copying and then deleting,
         // so i prefer to call their respective functions
         // instead of mashing them up
-        self.r#copy(args.clone());
-        self.r#delete(vec![args[0].clone()]);
+        self.r#copy(&args);
+        self.r#delete(&vec![args[0].clone()]);
     }
 
-    fn r#copy(&self, args: Args) {
+    fn r#copy(&self, args: &Args) {
         // arguments must be exactly 2
         if args.len() != 2 {
             self.raise_error(
@@ -179,8 +179,8 @@ impl Functions for super::Interpreter {
             }
         }
     }
-    fn r#shell(&self, args: Args) {
-        for arg in &args {
+    fn r#shell(&self, args: &Args) {
+        for arg in args {
             // Detirmine operating system and launch associated process
             #[cfg(windows)]
             {
