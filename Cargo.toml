@@ -9,7 +9,7 @@ readme = "README.md"
 documentation = "https://github.com/Alonely0/voila/wiki"
 homepage = "https://github.com/Alonely0/voila/"
 repository = "https://github.com/Alonely0/voila/"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 exclude = [
     "ROADMAP.md",
