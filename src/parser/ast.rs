@@ -74,65 +74,56 @@ pub enum Func {
 impl Literal {
     pub fn from_token(token: &super::super::lexer::Token) -> Literal {
         // Create a Literal & return it
-        return match Some(&*token.tok_type) {
-            Some("Txt") => Literal {
-                kind: LiteralKind::Str,
-                content: token.content.clone(),
-            },
-            Some("Var") => Literal {
-                kind: LiteralKind::Var,
-                content: token.content.clone(),
-            },
-            Some("Rgx") => Literal {
-                kind: LiteralKind::Rgx,
-                content: token.content.clone(),
-            },
-            _ => Literal {
-                kind: LiteralKind::Err,
-                content: token.content.clone(),
-            },
+        let content = token.content.clone();
+        let kind = match token.tok_type.as_str() {
+            "Txt" => LiteralKind::Str,
+            "Var" => LiteralKind::Var,
+            "Rgx" => LiteralKind::Rgx,
+            _ => LiteralKind::Err,
         };
+
+        Literal { kind, content }
     }
 }
 
 impl CondOperator {
     pub fn from_name(name: String) -> Self {
-        return match Some(&*name) {
-            Some("Equal") => CondOperator::Eq,
-            Some("NEqual") => CondOperator::Ne,
-            Some("GreaterT") => CondOperator::Gt,
-            Some("GreaterTorE") => CondOperator::Ge,
-            Some("LessT") => CondOperator::Lt,
-            Some("LessTorE") => CondOperator::Le,
-            Some("RgxMatch") => CondOperator::Re,
-            Some("RgxNMatch") => CondOperator::Rn,
+        match name.as_str() {
+            "Equal" => CondOperator::Eq,
+            "NEqual" => CondOperator::Ne,
+            "GreaterT" => CondOperator::Gt,
+            "GreaterTorE" => CondOperator::Ge,
+            "LessT" => CondOperator::Lt,
+            "LessTorE" => CondOperator::Le,
+            "RgxMatch" => CondOperator::Re,
+            "RgxNMatch" => CondOperator::Rn,
             _ => CondOperator::Er,
-        };
+        }
     }
 }
 
 impl CondRelationship {
     pub fn from_name(name: String) -> Self {
-        return match Some(&*name) {
-            Some("And") => CondRelationship::And,
-            Some("Any") => CondRelationship::Any,
-            Some("Lbrace") => CondRelationship::Null,
+        match name.as_str() {
+            "And" => CondRelationship::And,
+            "Any" => CondRelationship::Any,
+            "Lbrace" => CondRelationship::Null,
             _ => CondRelationship::Err,
-        };
+        }
     }
 }
 
 impl Func {
-    pub fn get_from(func_name: String) -> Self {
-        match Some(&*func_name) {
-            Some("delete") | Some(" delete") | Some("delete ") => Func::DELETE,
-            Some("create") | Some(" create") | Some("create ") => Func::CREATE,
-            Some("mkdir") | Some(" mkdir") | Some("mkdir ") => Func::MKDIR,
-            Some("print") | Some(" print") | Some("print ") => Func::PRINT,
-            Some("move") | Some(" move") | Some("move ") => Func::MOVE,
-            Some("copy") | Some(" copy") | Some("copy ") => Func::COPY,
-            Some("shell") | Some(" shell") | Some("shell ") => Func::SHELL,
-            None | _ => Func::NULL,
+    pub fn from_name(func_name: String) -> Self {
+        match func_name.trim() {
+            "delete" => Func::DELETE,
+            "create" => Func::CREATE,
+            "mkdir" => Func::MKDIR,
+            "print" => Func::PRINT,
+            "move" => Func::MOVE,
+            "copy" => Func::COPY,
+            "shell" => Func::SHELL,
+            _ => Func::NULL,
         }
     }
 }

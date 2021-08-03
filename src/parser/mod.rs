@@ -31,14 +31,14 @@ pub fn parse(tokens: Vec<super::lexer::Token>) -> AST {
             conditionals.push(conditional.clone());
             // conditionals will stop when the condr of the next is null,
             // so then we stop
-            if let CondRelationship::Null = conditional.next_conditional_relationship {
-                break;
-            } else {
-                continue;
+            match conditional.next_conditional_relationship {
+                CondRelationship::Null => break,
+                _ => continue,
             }
         }
+
         println_on_debug!("  Conditionals {:#?}", &conditionals);
-        return conditionals;
+        conditionals
     };
 
     let conditionals: Vec<Conditional> = get_conditionals(&mut parser);
@@ -47,22 +47,23 @@ pub fn parse(tokens: Vec<super::lexer::Token>) -> AST {
     let get_cycles = |parser: &mut Parser| -> Vec<Cycle> {
         let cycles: Vec<Cycle> = parser.parse_operations();
         println_on_debug!("  Cycles {:#?}", &cycles);
-        return cycles;
+        cycles
     };
 
     let cycles: Vec<Cycle> = get_cycles(&mut parser);
     let abstract_syntax_tree = AST {
-        conditionals: conditionals,
-        cycles: cycles,
+        conditionals,
+        cycles,
     };
+
     println_on_debug!("  {:#?}", &abstract_syntax_tree);
     println_on_debug!("Parser ended\n");
-    return abstract_syntax_tree;
+    abstract_syntax_tree
 }
 
 impl Parser {
     pub fn new(tokens: Tokens) -> Self {
-        return Self {
+        Self {
             tokens: tokens,
             position: 0usize,
 
@@ -77,6 +78,6 @@ impl Parser {
             current_function: "".to_string(),
             current_function_args: vec![],
             parsing_args: false,
-        };
+        }
     }
 }

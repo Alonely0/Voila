@@ -1,19 +1,36 @@
-extern crate async_trait;
-extern crate fs_extra;
+use std::fs;
+use std::process;
 
-mod functions;
+use fs_extra::dir;
 
 use super::exceptions::Exceptions;
 use super::utils::path::Path;
 use super::variables::Variables;
 use super::Literal;
 use super::Str;
-use fs_extra::dir;
-pub use functions::Functions;
-use std::fs;
-use std::process;
 
 type Args = Vec<String>;
+
+pub trait Functions {
+    // Parser returns the args of a function as a vector of vector of Literals,
+    // because an argument might have Text & Variables. Each vector inside the
+    // super-vector is a function argument (those separated by ","), and the
+    // Literals inside those vectors must be merged into a unique Literal,
+    // creating a vector of literals, being each one a function argument
+    // for making something that a function can deal with more easily.
+    // Then, the best is to create directly a vector of strings, because
+    // we do not care anymore about the type of the literal.
+    fn supervec_literals_to_args(&self, supervec: Vec<Vec<Literal>>) -> Args;
+
+    // Functions definitions
+    fn r#print(&self, args: Args);
+    fn r#create(&self, args: Args);
+    fn r#mkdir(&self, args: Args);
+    fn r#delete(&self, args: Args);
+    fn r#move(&self, args: Args);
+    fn r#copy(&self, args: Args);
+    fn r#shell(&self, args: Args);
+}
 
 impl Functions for super::Interpreter {
     // Parser returns the args of a function as a vector of vector of Literals,
@@ -35,7 +52,8 @@ impl Functions for super::Interpreter {
             }
             final_args.push(literals_str.clone());
         }
-        return final_args;
+
+        final_args
     }
 
     // Functions definitions
@@ -53,10 +71,7 @@ impl Functions for super::Interpreter {
                     .to_string(),
             );
         } else {
-            match fs::write(
-                self.trim_spaces(&args[0]),
-                self.trim_spaces(&args[1]),
-            ) {
+            match fs::write(self.trim_spaces(&args[0]), self.trim_spaces(&args[1])) {
                 Err(err) => self.raise_error(
                     "ERROR CREATING FILE",
                     format!("echo {} > {}': {err}", args[1], args[0]),
@@ -90,30 +105,25 @@ impl Functions for super::Interpreter {
             // doing a hashmap of stuff deleted and then a checker,
             // enough overhead & bottlenecks with the async hell
             // of the cycles & the interpreter
-            match is_file {
-                Err(_) => return,
-                _ => {}
-            }
-
-            // there is not a way of deleting something without
-            // without caring if its a directory or a file, so
-            // we have to get its type and call whatever needed
-            if is_file.unwrap() {
-                match fs::remove_file(self.trim_spaces(&arg)) {
-                    Err(err) => self.raise_error(
-                        "ERROR WHILE DELETING FILE",
-                        format!("An error occurred:\n'rm -f {arg}': {err}"),
-                    ),
-                    _ => {}
-                };
-            } else {
-                match fs::remove_dir_all(self.trim_spaces(&arg)) {
-                    Err(err) => self.raise_error(
-                        "ERROR WHILE DELETING DIRECTORY",
-                        format!("An error occurred:\n'rm -rf {arg}': {err}"),
-                    ),
-                    _ => {}
-                };
+            if let Ok(_) = is_file {
+                // there is not a way of deleting something without
+                // without caring if its a directory or a file, so
+                // we have to get its type and call whatever needed
+                if is_file.unwrap() {
+                    if let Err(err) = fs::remove_file(self.trim_spaces(&arg)) {
+                        self.raise_error(
+                            "ERROR WHILE DELETING FILE",
+                            format!("An error occurred:\n'rm -f {arg}': {err}"),
+                        );
+                    };
+                } else {
+                    if let Err(err) = fs::remove_dir_all(self.trim_spaces(&arg)) {
+                        self.raise_error(
+                            "ERROR WHILE DELETING DIRECTORY",
+                            format!("An error occurred:\n'rm -rf {arg}': {err}"),
+                        );
+                    };
+                }
             }
         }
     }
@@ -144,71 +154,66 @@ impl Functions for super::Interpreter {
             // doing a hashmap of stuff deleted and then a checker,
             // enough overhead & bottlenecks with the async hell
             // of the cycles & the interpreter
-            match is_file {
-                Err(_) => return,
-                _ => {}
-            }
-
-            if is_file.unwrap() {
-                match fs::copy(
-                    self.trim_spaces(&args[0]),
-                    self.trim_spaces(&args[1]),
-                ) {
-                    Err(err) => self.raise_error(
-                        "ERROR WHILE COPYING FILE",
-                        format!("An error occurred:\n'cp {} {}': {err}", args[0], args[1]),
-                    ),
-                    _ => {}
-                };
-            } else {
-                match dir::copy(
-                    self.trim_spaces(&args[0]),
-                    self.trim_spaces(&args[1]),
-                    &dir::CopyOptions::new(),
-                ) {
-                    Err(err) => self.raise_error(
-                        "ERROR WHILE COPYING DIR",
-                        format!(
-                            "An error occurred:\n'cp -r --parents --copy-contents {} {}': {err}",
-                            args[0], args[1]
-                        ),
-                    ),
-                    _ => {}
-                };
+            if let Ok(_) = is_file {
+                if is_file.unwrap() {
+                    if let Err(err) =
+                        fs::copy(self.trim_spaces(&args[0]), self.trim_spaces(&args[1]))
+                    {
+                        self.raise_error(
+                            "ERROR WHILE COPYING FILE",
+                            format!("An error occurred:\n'cp {} {}': {err}", args[0], args[1]),
+                        );
+                    };
+                } else {
+                    if let Err(err) = dir::copy(
+                        self.trim_spaces(&args[0]),
+                        self.trim_spaces(&args[1]),
+                        &dir::CopyOptions::new(),
+                    ) {
+                        self.raise_error(
+                            "ERROR WHILE COPYING DIR",                            
+                            format!("An error occurred:\n'cp -r --parents --copy-contents {} {}': {err}", args[0], args[1]),
+                        );
+                    };
+                }
             }
         }
     }
     fn r#shell(&self, args: Args) {
         for arg in &args {
-            // get if operating system is *nix or Windows,
-            // then launch whatever needed
-            if cfg!(windows) {
+            // Detirmine operating system and launch associated process
+            #[cfg(windows)]
+            {
                 // Windows' shell is powershell/pwsh
-                match process::Command::new("powershell")
-                .arg("-Command")
-                .arg(self.trim_spaces(&arg))
-                .output() // spawn() does not await the cmd to finish, output() does
-            {
-                Err(err) => self.raise_error(
-                    "ERROR WHILE EXECUTING SHELL",
-                    format!("An error occurred:\n'powershell -Command {}': {err}", arg),
-                ),
-                _ => {}
+                if let Err(err) = process::Command::new("powershell")
+                    .arg("-Command")
+                    .arg(self.trim_spaces(&arg))
+                    .output()
+                // spawn() does not await the cmd to finish, output() does
+                {
+                    self.raise_error(
+                        "ERROR WHILE EXECUTING SHELL",
+                        format!("An error occurred:\n'powershell -Command {}': {err}", arg),
+                    );
+                }
             }
-            } else if cfg!(unix) {
+            #[cfg(unix)]
+            {
                 // unix' shell is the bourne shell, aka sh
-                match process::Command::new("sh")
-                .arg("-c")
-                .arg(self.trim_spaces(&arg))
-                .output() // spawn() does not await the cmd to finish, output() does
-            {
-                Err(err) => self.raise_error(
-                    "ERROR WHILE EXECUTING SHELL",
-                    format!("An error occurred:\n'sh -c {}': {err}", arg),
-                ),
-                _ => {}
+                if let Err(err) = process::Command::new("sh")
+                    .arg("-c")
+                    .arg(self.trim_spaces(&arg))
+                    .output()
+                // spawn() does not await the cmd to finish, output() does
+                {
+                    self.raise_error(
+                        "ERROR WHILE EXECUTING SHELL",
+                        format!("An error occurred:\n'sh -c {}': {err}", arg),
+                    );
+                }
             }
-            } else {
+            #[cfg(not(any(unix, windows)))]
+            {
                 self.raise_error(
                     "UNSUPPORTED PLATFORM",
                     "Voila is only supported on Windows & Unix-like systems".to_string(),

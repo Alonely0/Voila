@@ -1,7 +1,10 @@
 use super::*;
-pub use cycles::Cycles;
 
-pub mod cycles;
+pub trait Cycles {
+    fn push_current_cycle(&mut self, tokens_index_list: &mut Vec<usize>);
+    fn parse_raw_cycles(&mut self);
+    fn parse_cycles(&mut self);
+}
 
 impl Cycles for super::Parser {
     // i do not remember well what does this, but works
@@ -66,11 +69,11 @@ impl Cycles for super::Parser {
                 }
 
                 // match the token type
-                match Some(&*token.tok_type) {
+                match token.tok_type.as_str() {
                     // is it a function? ok
                     // are we parsing arguments? not great
                     // if not? set current function to it
-                    Some("Func") => {
+                    "Func" => {
                         if self.parsing_args {
                             self.raise_parse_error(
                                 "UNEXPECTED TOKEN",
@@ -87,7 +90,7 @@ impl Cycles for super::Parser {
                     // are we parsing arguments? not great
                     // was a function behind? great
                     // now we are parsing arguments
-                    Some("Lparen") => {
+                    "Lparen" => {
                         if self.parsing_args {
                             self.raise_parse_error(
                                 "UNEXPECTED TOKEN",
@@ -112,11 +115,11 @@ impl Cycles for super::Parser {
                     // are we parsing arguments? great
                     // was a function behind? great
                     // now function is unset
-                    Some("Rparen") => {
+                    "Rparen" => {
                         if self.parsing_args && self.current_function != "NULL" {
                             self.parsing_args = false;
                             self.current_cycle_funcs.push(Function {
-                                function: Func::get_from(self.current_function.clone()),
+                                function: Func::from_name(self.current_function.clone()),
                                 args: self.current_function_args.clone(),
                             });
                             self.current_function = "NULL".to_string();
@@ -139,7 +142,7 @@ impl Cycles for super::Parser {
                     // was a comma behind? push a new vec of args
                     // if not? push to current function args
                     // why? because of multiple literal handling
-                    Some("Txt") | Some("Var") | Some("Rgx") => {
+                    "Txt" | "Var" | "Rgx" => {
                         if self.parsing_args && last_token.content == "," {
                             self.current_function_args
                                 .push(vec![Literal::from_token(token)]);
@@ -185,7 +188,7 @@ impl Cycles for super::Parser {
                     // is it a ','? ok
                     // was a function behind? great
                     // are we parsing arguments? great
-                    Some("Comma") => {
+                    "Comma" => {
                         if self.current_function == "NULL" {
                             self.raise_parse_error(
                                 "UNEXPECTED TOKEN",
@@ -210,7 +213,7 @@ impl Cycles for super::Parser {
                     }
 
                     // is it a '{' or a '}'? not ok
-                    Some("Lbrace") | Some("Rbrace") => {
+                    "Lbrace" | "Rbrace" => {
                         if !self.parsing_args {
                             self.raise_parse_error(
                                 "UNEXPECTED TOKEN",

@@ -1,7 +1,9 @@
 use super::*;
-pub use conditionals::Conditionals;
 
-pub mod conditionals;
+pub trait Conditionals {
+    fn parse_next_conditional(&mut self) -> super::Conditional;
+    fn reset_conditionals(&mut self);
+}
 
 impl Conditionals for super::Parser {
     fn parse_next_conditional(&mut self) -> Conditional {
@@ -17,20 +19,8 @@ impl Conditionals for super::Parser {
 
             // define useful variables
             let token: &Token = &self.tokens[i];
-            let next_token: &Token;
-            let last_token: &Token;
-
-            // avoid panics
-            if &i + 1 != self.tokens.len() {
-                next_token = &self.tokens[i + 1];
-            } else {
-                next_token = &self.tokens[i];
-            }
-            if i != 0usize {
-                last_token = &self.tokens[i - 1];
-            } else {
-                last_token = &self.tokens[i];
-            }
+            let next_token: &Token = &self.tokens[i + (&i + 1 != self.tokens.len()) as usize];
+            let last_token: &Token = &self.tokens[i - (i != 0usize) as usize];
 
             // this way we know whenever a value has been already parsed
             if let None = self.val1 {
@@ -128,13 +118,13 @@ impl Conditionals for super::Parser {
         println_on_debug!("  position, {}", self.position);
 
         // return conditional
-        return Conditional {
+        Conditional {
             val1: self.val1.clone().unwrap(),
             op: self.oper.clone().unwrap(),
             val2: self.val2.clone().unwrap(),
             next_conditional_relationship: self.rela.clone().unwrap(),
             position: self.position.clone(),
-        };
+        }
     }
 
     // this way the conditional's parser knows whenever it has to parse a new conditional

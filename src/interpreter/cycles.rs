@@ -1,13 +1,15 @@
-extern crate async_trait;
-extern crate rayon;
+use async_trait::async_trait;
+use rayon::prelude::*;
 
 use super::functions::Functions;
 use super::println_on_debug;
 use super::{Cycle, Func, Function};
-use async_trait::async_trait;
-pub use cycles::Cycles;
-use rayon::prelude::*;
-pub mod cycles;
+
+#[async_trait(?Send)]
+pub trait Cycles {
+    async fn exec_new_cycle(&mut self, operations: Cycle);
+    fn execute_operation(&self, function: &Function);
+}
 
 #[async_trait(?Send)]
 impl Cycles for super::Interpreter {
@@ -25,7 +27,6 @@ impl Cycles for super::Interpreter {
 
     fn execute_operation(&self, operation: &Function) {
         println_on_debug!("Executing [ {:#?} ]", &operation);
-
         let args: Vec<String> = self.supervec_literals_to_args(operation.args.to_owned());
         println_on_debug!("Args {:#?}", &args);
         match operation.function {

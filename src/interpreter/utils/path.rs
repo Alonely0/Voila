@@ -1,12 +1,8 @@
-extern crate async_stream;
-extern crate futures_core;
-extern crate path_absolutize;
-extern crate walkdir;
+use std::fs;
 
 use async_stream::stream;
 use futures_core::stream::Stream;
 use path_absolutize::*;
-use std::fs;
 use walkdir::WalkDir;
 
 pub trait Path {

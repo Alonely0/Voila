@@ -21,8 +21,14 @@ pub struct Cli {
         help = "Operate recursively inside the directory provided"
     )]
     pub recursive: bool,
-    #[structopt(name = "FOLDER", help = "/something/path/to/folder or ./path/to/folder")]
+    #[structopt(
+        name = "FOLDER",
+        help = "/something/path/to/folder or ./path/to/folder"
+    )]
     pub dir: PathBuf,
-    #[structopt(name = "SOURCE", help = "for syntax & examples see the documentation, you can find it in the repository.")]
+    #[structopt(
+        name = "SOURCE",
+        help = "for syntax & examples see the documentation, you can find it in the repository."
+    )]
     pub source: String,
 }

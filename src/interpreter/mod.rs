@@ -1,15 +1,6 @@
-extern crate futures_util;
-
-use super::parser::ast::*;
-use super::println_on_debug;
-use conditionals::Conditionals;
-use cycles::Cycles;
-use futures_util::pin_mut;
-use futures_util::stream::StreamExt;
-use interpreter::Interpreter;
 use std::path::PathBuf;
-use utils::path;
-use utils::Str;
+
+use crate::{parser::ast::*, println_on_debug};
 
 mod conditionals;
 mod cycles;
@@ -19,6 +10,12 @@ mod interpreter;
 mod operators;
 mod utils;
 mod variables;
+
+use conditionals::Conditionals;
+use cycles::Cycles;
+use futures_util::{pin_mut, stream::StreamExt};
+use interpreter::Interpreter;
+use utils::{path, Str};
 
 type AST = super::parser::ast::AST;
 

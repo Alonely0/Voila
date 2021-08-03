@@ -1,7 +1,8 @@
-pub mod exceptions;
-
-pub use exceptions::Exceptions;
 use std::process;
+
+pub trait Exceptions {
+    fn raise_error(&self, err_type: &str, msg: String);
+}
 
 impl Exceptions for super::Interpreter {
     fn raise_error(&self, err_type: &str, msg: String) {
