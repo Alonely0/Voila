@@ -162,7 +162,7 @@ impl Variables for super::Interpreter {
             }),
             "sum=sha512" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: self.get_sum_of(&self.__file__, SumTypes::Sha256),
+                content: self.get_sum_of(&self.__file__, SumTypes::Sha512),
             }),
             "ownerID" => {
                 let kind = LiteralKind::Str;
