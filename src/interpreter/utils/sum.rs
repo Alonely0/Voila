@@ -9,6 +9,6 @@ pub enum SumTypes {
 }
 
 pub trait Sum {
-    fn get_sum_of(&self, file: &String, sum: SumTypes) -> Result<String, String>;
+    fn get_sum_of(&self, file: &String, sum: SumTypes) -> String;
     fn read_bytes_of_file<'a>(&self, path: &String) -> &'a [u8];
 }

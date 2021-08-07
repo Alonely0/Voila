@@ -1,6 +1,8 @@
 use super::exceptions::Exceptions;
 use path_absolutize::*;
 use regex::Regex;
+use sha1::{Digest, Sha1};
+use sha2::*;
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
@@ -10,7 +12,6 @@ use std::process;
 pub use string::Str;
 pub use sum::Sum;
 pub use sum::SumTypes;
-use sha2::*;
 
 pub mod path;
 pub mod regexp;
@@ -73,16 +74,41 @@ impl Str for super::Interpreter {
 }
 
 impl Sum for super::Interpreter {
-    fn get_sum_of(&self, file: &String, sum: SumTypes) -> Result<String, String> {
+    fn get_sum_of(&self, file: &String, sum: SumTypes) -> String {
         let bytes = self.read_bytes_of_file(file);
         println!("{:?}", sum);
         match sum {
-            SumTypes::Md5 => Ok(format!("{:x}", md5::compute(bytes))),
-            SumTypes::Sha1 => todo!(),
-            SumTypes::Sha224 => todo!(),
-            SumTypes::Sha256 => todo!(),
-            SumTypes::Sha384 => todo!(),
-            SumTypes::Sha512 => todo!(),
+            SumTypes::Md5 => format!("{:x}", md5::compute(bytes)),
+            SumTypes::Sha1 => {
+                let mut hasher = Sha1::new();
+
+                hasher.update(bytes);
+                format!("{:x}", hasher.finalize())
+            },
+            SumTypes::Sha224 => {
+                let mut hasher = Sha224::new();
+
+                hasher.update(bytes);
+                format!("{:x}", hasher.finalize())
+            },
+            SumTypes::Sha256 => {
+                let mut hasher = Sha256::new();
+
+                hasher.update(bytes);
+                format!("{:x}", hasher.finalize())
+            },
+            SumTypes::Sha384 => {
+                let mut hasher = Sha384::new();
+
+                hasher.update(bytes);
+                format!("{:x}", hasher.finalize())
+            },
+            SumTypes::Sha512 => {
+                let mut hasher = Sha512::new();
+
+                hasher.update(bytes);
+                format!("{:x}", hasher.finalize())
+            },
         }
     }
     fn read_bytes_of_file<'a>(&self, path: &String) -> &'a [u8] {
