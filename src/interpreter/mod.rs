@@ -39,7 +39,6 @@ impl Interpreter {
             __ast__: ast,
 
             // variables needed for runtime
-            __files__: vec![],
             __file__: String::from(""),
         }
     }

@@ -119,10 +119,22 @@ impl Conditionals for super::Parser {
 
         // return conditional
         Conditional {
-            val1: self.val1.clone().unwrap(),
-            op: self.oper.clone().unwrap(),
-            val2: self.val2.clone().unwrap(),
-            next_conditional_relationship: self.rela.clone().unwrap(),
+            val1: self.val1.clone().unwrap_or_else(|| {
+                self.raise_parse_error("EXPECTED VALUE", String::from("Found nothing"));
+                panic!()
+                }),
+            op: self.oper.clone().unwrap_or_else(|| {
+                self.raise_parse_error("EXPECTED OPERATOR", String::from("Found nothing"));
+                panic!()
+                }),
+            val2: self.val2.clone().unwrap_or_else(|| {
+                self.raise_parse_error("EXPECTED VALUE", String::from("Found nothing"));
+                panic!()
+                }),
+            next_conditional_relationship: self.rela.clone().unwrap_or_else(|| {
+                self.raise_parse_error("EXPECTED OPERATIONS", String::from("Found nothing"));
+                panic!()
+                }),
             position: self.position.clone(),
         }
     }

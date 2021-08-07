@@ -2,6 +2,7 @@ extern crate md5;
 extern crate path_absolutize;
 extern crate sha256;
 
+use super::exceptions::Exceptions;
 use path_absolutize::*;
 use regex::Regex;
 use std::fs;
