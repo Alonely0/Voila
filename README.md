@@ -34,7 +34,7 @@ These are the available variables:
   * `empty`: true if the file size is less than 1 byte (else false)
   * `readonly`: true if the file is ro (else false)
   * `sum=md5`: md5 checksum ***this variable might be removed in the future, md5 is completely broken***
-  * `sum=sha1`: sha1 checksum
+  * `sum=sha1`: sha1 checksum ***this variable might be removed in the future, sha1 is completely broken***
   * `sum=sha224`: sha224 checksum
   * `sum=sha256`: sha256 checksum
   * `sum=sha384`: sha384 checksum
