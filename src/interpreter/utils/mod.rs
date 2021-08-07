@@ -1,10 +1,8 @@
-extern crate md5;
-extern crate path_absolutize;
-extern crate sha256;
-
 use super::exceptions::Exceptions;
 use path_absolutize::*;
 use regex::Regex;
+use sha1::{Digest, Sha1};
+use sha2::*;
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
@@ -76,12 +74,40 @@ impl Str for super::Interpreter {
 }
 
 impl Sum for super::Interpreter {
-    fn get_sum_of(&self, file: &String, sum: SumTypes) -> Result<String, String> {
+    fn get_sum_of(&self, file: &String, sum: SumTypes) -> String {
         let bytes = self.read_bytes_of_file(file);
-        println!("{:?}", sum);
         match sum {
-            SumTypes::Sha256 => Ok(sha256::digest_bytes(bytes)),
-            SumTypes::Md5 => Ok(format!("{:x}", md5::compute(bytes))),
+            SumTypes::Md5 => format!("{:x}", md5::compute(bytes)),
+            SumTypes::Sha1 => {
+                let mut hasher = Sha1::new();
+
+                hasher.update(bytes);
+                format!("{:x}", hasher.finalize())
+            },
+            SumTypes::Sha224 => {
+                let mut hasher = Sha224::new();
+
+                hasher.update(bytes);
+                format!("{:x}", hasher.finalize())
+            },
+            SumTypes::Sha256 => {
+                let mut hasher = Sha256::new();
+
+                hasher.update(bytes);
+                format!("{:x}", hasher.finalize())
+            },
+            SumTypes::Sha384 => {
+                let mut hasher = Sha384::new();
+
+                hasher.update(bytes);
+                format!("{:x}", hasher.finalize())
+            },
+            SumTypes::Sha512 => {
+                let mut hasher = Sha512::new();
+
+                hasher.update(bytes);
+                format!("{:x}", hasher.finalize())
+            },
         }
     }
     fn read_bytes_of_file<'a>(&self, path: &String) -> &'a [u8] {
@@ -90,15 +116,16 @@ impl Sum for super::Interpreter {
         match file {
             Ok(mut f) => f
                 .read_to_string(&mut String::from(buffer))
-                .unwrap_or_else(|e| {
-                    eprintln!("could not read one or more files:\n{:#?}", e);
-                    process::exit(1)
-                }),
+                .unwrap_or_else(|_| 0),
             Err(e) => {
-                eprintln!("could not open one or more files:\n{:#?}", e);
-                process::exit(1)
+                self.raise_error("COULD NOT READ BYTES FROM FILE", format!("Cannot read {}: {:?}", self.__file__, e));
+                panic!()
             }
         };
-        buffer.as_bytes()
+
+        match panic::catch_unwind(|| buffer.as_bytes()) {
+            Ok(bytes) => bytes,
+            Err(_) => &[0u8]
+        }
     }
 }
