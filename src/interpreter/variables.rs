@@ -140,35 +140,29 @@ impl Variables for super::Interpreter {
                     content: format!("{}", metadata.permissions().readonly()),
                 })
             }
-            "sha1sum" => Ok(Literal {
+            "sum=md5" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: self
-                    .get_sum_of(&self.__file__, SumTypes::Sha256),
+                content: self.get_sum_of(&self.__file__, SumTypes::Md5),
             }),
-            "sha224sum" => Ok(Literal {
+            "sum=sha1" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: self
-                    .get_sum_of(&self.__file__, SumTypes::Sha256),
+                content: self.get_sum_of(&self.__file__, SumTypes::Sha1),
             }),
-            "sha256sum" => Ok(Literal {
+            "sum=sha224" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: self
-                    .get_sum_of(&self.__file__, SumTypes::Sha256),
+                content: self.get_sum_of(&self.__file__, SumTypes::Sha224),
             }),
-            "sha384sum" => Ok(Literal {
+            "sum=sha256" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: self
-                    .get_sum_of(&self.__file__, SumTypes::Sha256),
+                content: self.get_sum_of(&self.__file__, SumTypes::Sha256),
             }),
-            "sha512sum" => Ok(Literal {
+            "sum=sha384" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: self
-                    .get_sum_of(&self.__file__, SumTypes::Sha256),
+                content: self.get_sum_of(&self.__file__, SumTypes::Sha384),
             }),
-            "md5sum" => Ok(Literal {
+            "sum=sha512" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: self
-                    .get_sum_of(&self.__file__, SumTypes::Md5),
+                content: self.get_sum_of(&self.__file__, SumTypes::Sha256),
             }),
             "ownerID" => {
                 let kind = LiteralKind::Str;
