@@ -1,7 +1,3 @@
-extern crate md5;
-extern crate path_absolutize;
-extern crate sha256;
-
 use super::exceptions::Exceptions;
 use path_absolutize::*;
 use regex::Regex;
@@ -14,6 +10,7 @@ use std::process;
 pub use string::Str;
 pub use sum::Sum;
 pub use sum::SumTypes;
+use sha2::*;
 
 pub mod path;
 pub mod regexp;
@@ -80,8 +77,12 @@ impl Sum for super::Interpreter {
         let bytes = self.read_bytes_of_file(file);
         println!("{:?}", sum);
         match sum {
-            SumTypes::Sha256 => Ok(sha256::digest_bytes(bytes)),
             SumTypes::Md5 => Ok(format!("{:x}", md5::compute(bytes))),
+            SumTypes::Sha1 => todo!(),
+            SumTypes::Sha224 => todo!(),
+            SumTypes::Sha256 => todo!(),
+            SumTypes::Sha384 => todo!(),
+            SumTypes::Sha512 => todo!(),
         }
     }
     fn read_bytes_of_file<'a>(&self, path: &String) -> &'a [u8] {
