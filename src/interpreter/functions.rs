@@ -8,6 +8,7 @@ use super::utils::path::Path;
 use super::variables::Variables;
 use super::Literal;
 use super::Str;
+use std::io::{self, Write};
 
 type Args = Vec<String>;
 
@@ -58,9 +59,12 @@ impl Functions for super::Interpreter {
 
     // Functions definitions
     fn r#print(&self, args: &Args) {
-        // mitigate printing bottleneck by using only 1 print
-        // context: i used to have a for loop
-        println!("{}", args.join("\n"));
+        // mitigate printing bottleneck by locking
+        // the stdout and creating a write buffer
+        let stdout = io::stdout(); // get the global stdout entity
+        let mut handle = io::BufWriter::new(stdout.lock());
+        writeln!(handle, "{}", args.join("\n")).unwrap();
+        handle.flush().unwrap();
     }
 
     fn r#create(&self, args: &Args) {

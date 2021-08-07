@@ -37,8 +37,6 @@ impl Interpreter {
             __directory__: dir,
             __recursive__: recursive,
             __ast__: ast,
-
-            // variables needed for runtime
             __file__: String::from(""),
         }
     }
