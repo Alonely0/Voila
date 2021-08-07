@@ -76,7 +76,6 @@ impl Str for super::Interpreter {
 impl Sum for super::Interpreter {
     fn get_sum_of(&self, file: &String, sum: SumTypes) -> String {
         let bytes = self.read_bytes_of_file(file);
-        println!("{:?}", sum);
         match sum {
             SumTypes::Md5 => format!("{:x}", md5::compute(bytes)),
             SumTypes::Sha1 => {
@@ -117,15 +116,16 @@ impl Sum for super::Interpreter {
         match file {
             Ok(mut f) => f
                 .read_to_string(&mut String::from(buffer))
-                .unwrap_or_else(|e| {
-                    eprintln!("could not read one or more files:\n{:#?}", e);
-                    process::exit(1)
-                }),
+                .unwrap_or_else(|_| 0),
             Err(e) => {
-                eprintln!("could not open one or more files:\n{:#?}", e);
-                process::exit(1)
+                self.raise_error("COULD NOT READ BYTES FROM FILE", format!("Cannot read {}: {:?}", self.__file__, e));
+                panic!()
             }
         };
-        buffer.as_bytes()
+
+        match panic::catch_unwind(|| buffer.as_bytes()) {
+            Ok(bytes) => bytes,
+            Err(_) => &[0u8]
+        }
     }
 }
