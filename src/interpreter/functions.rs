@@ -59,10 +59,9 @@ impl Functions for super::Interpreter {
 
     // Functions definitions
     fn r#print(&self, args: &Args) {
-        // mitigate printing bottleneck by locking
-        // the stdout and creating a write buffer
-        let stdout = io::stdout(); // get the global stdout entity
-        let mut handle = io::BufWriter::new(stdout.lock());
+        // mitigate printing bottleneck by locking the stdout
+        let stdout = io::stdout();
+        let mut handle = stdout.lock();
         writeln!(handle, "{}", args.join("\n")).unwrap();
         handle.flush().unwrap();
     }
