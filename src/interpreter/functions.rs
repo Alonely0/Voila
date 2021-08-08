@@ -174,7 +174,7 @@ impl Functions for super::Interpreter {
                         &dir::CopyOptions::new(),
                     ) {
                         self.raise_error(
-                            "ERROR WHILE COPYING DIR",                            
+                            "ERROR WHILE COPYING DIR",
                             format!("An error occurred:\n'cp -r --parents --copy-contents {} {}': {err}", args[0], args[1]),
                         );
                     };
@@ -184,7 +184,7 @@ impl Functions for super::Interpreter {
     }
     fn r#shell(&self, args: &Args) {
         for arg in args {
-            // Detirmine operating system and launch associated process
+            // Determine operating system and launch associated process
             #[cfg(windows)]
             {
                 // Windows' shell is powershell/pwsh

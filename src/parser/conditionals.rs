@@ -38,7 +38,6 @@ impl Conditionals for super::Parser {
                                 literal_val1.content
                             ),
                         );
-                        Some(literal_val1)
                     }
                     _ => Some(literal_val1),
                 };
@@ -52,7 +51,6 @@ impl Conditionals for super::Parser {
                             "UNEXPECTED TOKEN",
                             format!("Expected an operator, got {}", token.content),
                         );
-                        Some(CondOperator::from_name(&token.tok_type))
                     }
                     CondOperator::Re | CondOperator::Rn => {
                         if next_token.tok_type != "Rgx" && last_token.tok_type != "Rgx" {
@@ -85,7 +83,6 @@ impl Conditionals for super::Parser {
                                 literal_val2.content
                             ),
                         );
-                        Some(literal_val2)
                     }
                     _ => Some(literal_val2),
                 };
@@ -99,7 +96,6 @@ impl Conditionals for super::Parser {
                             "UNEXPECTED SYMBOL",
                             format!("Expected &&, || or {{, got {}", token.content),
                         );
-                        Some(CondRelationship::from_name(&token.tok_type))
                     }
                     _ => Some(CondRelationship::from_name(&token.tok_type)),
                 };
@@ -121,19 +117,15 @@ impl Conditionals for super::Parser {
         Conditional {
             val1: self.val1.clone().unwrap_or_else(|| {
                 self.raise_parse_error("EXPECTED VALUE", String::from("Found nothing"));
-                panic!()
                 }),
             op: self.oper.clone().unwrap_or_else(|| {
                 self.raise_parse_error("EXPECTED OPERATOR", String::from("Found nothing"));
-                panic!()
                 }),
             val2: self.val2.clone().unwrap_or_else(|| {
                 self.raise_parse_error("EXPECTED VALUE", String::from("Found nothing"));
-                panic!()
                 }),
             next_conditional_relationship: self.rela.clone().unwrap_or_else(|| {
                 self.raise_parse_error("EXPECTED OPERATIONS", String::from("Found nothing"));
-                panic!()
                 }),
             position: self.position.clone(),
         }
