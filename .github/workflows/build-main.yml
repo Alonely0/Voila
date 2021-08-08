@@ -8,12 +8,19 @@ on:
 
 jobs:
   build:
-    name: Rust ${{ matrix.os }} ${{ matrix.rust }}
+    name: Rust ${{ matrix.displayName }} ${{ matrix.rust }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         os: [macos-10.15, ubuntu-20.04, windows-2019]
         rust: [nightly]
+        include:
+          - os: macos-10.15
+            displayName: macOS
+          - os: ubuntu-20.04
+            displayName: Ubuntu
+          - os: windows-2019
+            displayName: Windows
 
     steps:
       - uses: actions/checkout@v2
