@@ -24,16 +24,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - name: Checkout repository
+
       - name: Install minimal ${{ matrix.rust }} rust
         uses: actions-rs/toolchain@v1
         with:
           override: true
           profile: minimal
           toolchain: ${{ matrix.rust }}
-      - run: cargo -Vv && rustc -Vv
-      - run: cargo check
-        if: ${{ matrix.rust != 'stable' }}
-      - run: cargo check --all-features
-        if: ${{ matrix.rust == 'stable' }}
-      - run: cargo test
-        if: ${{ matrix.rust == 'stable' }}
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v1
+
+      - name: Check a local package
+        run: cargo check
+
+      - name: Run tests
+        run: cargo test
