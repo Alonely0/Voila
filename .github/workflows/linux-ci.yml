@@ -1,0 +1,35 @@
+name: Linux build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Rust Linux ${{ matrix.rust }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: [nightly]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install minimal ${{ matrix.rust }} rust
+        uses: actions-rs/toolchain@v1
+        with:
+          override: true
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v1
+
+      - name: Check local package
+        run: cargo check
+
+      - name: Run tests
+        run: cargo test

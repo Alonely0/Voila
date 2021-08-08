@@ -1,4 +1,4 @@
-name: build
+name: macOS build
 
 on:
   push:
@@ -8,19 +8,11 @@ on:
 
 jobs:
   build:
-    name: Rust ${{ matrix.displayName }} ${{ matrix.rust }}
-    runs-on: ubuntu-latest
+    name: Rust macOS ${{ matrix.rust }}
+    runs-on: macos-10.15
     strategy:
       matrix:
-        os: [macos-10.15, ubuntu-20.04, windows-2019]
         rust: [nightly]
-        include:
-          - os: macos-10.15
-            displayName: macOS
-          - os: ubuntu-20.04
-            displayName: Ubuntu
-          - os: windows-2019
-            displayName: Windows
 
     steps:
       - name: Checkout repository
@@ -36,7 +28,7 @@ jobs:
       - name: Cache Rust
         uses: Swatinem/rust-cache@v1
 
-      - name: Check a local package
+      - name: Check local package
         run: cargo check
 
       - name: Run tests
