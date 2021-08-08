@@ -1,4 +1,4 @@
-name: Build
+name: build
 
 on:
   push:
@@ -32,9 +32,8 @@ jobs:
           toolchain: ${{ matrix.rust }}
       - run: cargo -Vv && rustc -Vv
       - run: cargo check
+        if: ${{ matrix.rust != 'stable' }}
       - run: cargo check --all-features
-        if: ${{ matrix.rust == 'stable' }}
-      - run: cargo fmt --all -- --check
         if: ${{ matrix.rust == 'stable' }}
       - run: cargo test
         if: ${{ matrix.rust == 'stable' }}
