@@ -1,4 +1,4 @@
-name: Linux build
+name: Build
 
 on:
   push:
@@ -7,12 +7,14 @@ on:
     branches: [main]
 
 jobs:
-  check:
-    name: Rust Linux ${{ matrix.rust }}
+  build:
+    name: Rust ${{ matrix.os }} ${{ matrix.rust }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
         rust: [nightly]
+
     steps:
       - uses: actions/checkout@v2
       - name: Install minimal ${{ matrix.rust }} rust
