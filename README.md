@@ -62,6 +62,8 @@ These are the available operations/functions:
 * `copy`: copies a file or a folder/directory
 * `shell`: gives a command to the Bourne Shell (`sh`) in Unix systems (like Linux or macOS), and a command to PowerShell (`powershell`) in Windows systems. Exists for doing things Voila functions can't, for example, send a dbus message.
 
+**WARNING: If you use functions that access & modify the same file/directory in the same cycle it could cause undefined behavior because the file would be accessed and overwritten at the same time. For avoiding that, consider splitting those functions into different cycles. A workaround is being discussed in [#5](https://github.com/Alonely0/Voila/issues/5)**
+
 ### Examples
 
 * `voila /backup "@creation=date <= 2020-01-01 { print(@name has been deleted) delete(@path) }`: Voila will delete every file in /backup whose creation was earlier to 2020 printing a delete message.

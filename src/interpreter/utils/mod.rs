@@ -8,7 +8,6 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::panic;
 use std::path::Path;
-use std::process;
 pub use string::Str;
 pub use sum::Sum;
 pub use sum::SumTypes;
@@ -119,7 +118,6 @@ impl Sum for super::Interpreter {
                 .unwrap_or_else(|_| 0),
             Err(e) => {
                 self.raise_error("COULD NOT READ BYTES FROM FILE", format!("Cannot read {}: {:?}", self.__file__, e));
-                panic!()
             }
         };
 
