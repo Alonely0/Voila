@@ -23,8 +23,8 @@ jobs:
             displayName: Windows
 
     steps:
-      - uses: actions/checkout@v2
       - name: Checkout repository
+        uses: actions/checkout@v2
 
       - name: Install minimal ${{ matrix.rust }} rust
         uses: actions-rs/toolchain@v1
