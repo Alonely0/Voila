@@ -6,7 +6,7 @@ use sha2::*;
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
-use std::panic;
+use std::io;
 use std::path::Path;
 pub use string::Str;
 pub use sum::Sum;
@@ -109,21 +109,23 @@ impl Sum for super::Interpreter {
             },
         }
     }
-    fn read_bytes_of_file<'a>(&self, path: &String) -> &'a [u8] {
-        let buffer = "";
-        let file = panic::catch_unwind(|| File::open(path).unwrap());
+    fn read_bytes_of_file(&self, path: &String) -> Vec<u8> {
+        // let buffer = "";
+        let mut buffer = Vec::new();
+        let file = File::open(path);
         match file {
-            Ok(mut f) => f
-                .read_to_string(&mut String::from(buffer))
-                .unwrap_or_else(|_| 0),
+            Ok(f) => {
+                let mut reader = io::BufReader::new(f);
+                reader.read_to_end(&mut buffer).unwrap();
+            }
             Err(e) => {
                 self.raise_error("COULD NOT READ BYTES FROM FILE", format!("Cannot read {}: {:?}", self.__file__, e));
             }
         };
-
-        match panic::catch_unwind(|| buffer.as_bytes()) {
-            Ok(bytes) => bytes,
-            Err(_) => &[0u8]
-        }
+        // match panic::catch_unwind(|| buffer.as_bytes()) {
+        //     Ok(bytes) => bytes,
+        //     Err(_) => &[0u8]
+        // }
+        buffer
     }
 }
