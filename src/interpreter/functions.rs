@@ -79,7 +79,7 @@ impl Functions for super::Interpreter {
                     "ERROR CREATING FILE",
                     format!("echo {} > {}': {err}", args[1], args[0]),
                 ),
-                _ => {}
+                _ => {},
             }
         }
     }
@@ -91,7 +91,7 @@ impl Functions for super::Interpreter {
                     "ERROR WHILE CREATING DIRECTORY",
                     format!("An error occurred:\n'mkdir --parent {arg}': {err}"),
                 ),
-                _ => {}
+                _ => {},
             };
         }
     }

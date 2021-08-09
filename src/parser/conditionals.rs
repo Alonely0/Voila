@@ -38,7 +38,7 @@ impl Conditionals for super::Parser {
                                 literal_val1.content
                             ),
                         );
-                    }
+                    },
                     _ => Some(literal_val1),
                 };
             } else if let None = self.oper {
@@ -51,7 +51,7 @@ impl Conditionals for super::Parser {
                             "UNEXPECTED TOKEN",
                             format!("Expected an operator, got {}", token.content),
                         );
-                    }
+                    },
                     CondOperator::Re | CondOperator::Rn => {
                         if next_token.tok_type != "Rgx" && last_token.tok_type != "Rgx" {
                             self.raise_parse_error(
@@ -60,13 +60,13 @@ impl Conditionals for super::Parser {
                                      "Expected a different operator, {} is only for regular expressions. Consider using other operator, like == or !=", token.content))
                         }
                         Some(CondOperator::from_name(&token.tok_type))
-                    }
+                    },
                     _ => {
                         if next_token.tok_type == "Rgx" || last_token.tok_type == "Rgx" {
                             self.raise_parse_error("UNEXPECTED TOKEN", format!("Expected a different operator, {} is not for regular expressions. Consider using other operator, like ~= or ~!", token.content))
                         }
                         Some(CondOperator::from_name(&token.tok_type))
-                    }
+                    },
                 }
             } else if let None = self.val2 {
                 println_on_debug!("  parsing val2, token {token}, next token {next_token}");
@@ -83,7 +83,7 @@ impl Conditionals for super::Parser {
                                 literal_val2.content
                             ),
                         );
-                    }
+                    },
                     _ => Some(literal_val2),
                 };
             } else if let None = self.rela {
@@ -96,7 +96,7 @@ impl Conditionals for super::Parser {
                             "UNEXPECTED SYMBOL",
                             format!("Expected &&, || or {{, got {}", token.content),
                         );
-                    }
+                    },
                     _ => Some(CondRelationship::from_name(&token.tok_type)),
                 };
 
@@ -117,16 +117,16 @@ impl Conditionals for super::Parser {
         Conditional {
             val1: self.val1.clone().unwrap_or_else(|| {
                 self.raise_parse_error("EXPECTED VALUE", String::from("Found nothing"));
-                }),
+            }),
             op: self.oper.clone().unwrap_or_else(|| {
                 self.raise_parse_error("EXPECTED OPERATOR", String::from("Found nothing"));
-                }),
+            }),
             val2: self.val2.clone().unwrap_or_else(|| {
                 self.raise_parse_error("EXPECTED VALUE", String::from("Found nothing"));
-                }),
+            }),
             next_conditional_relationship: self.rela.clone().unwrap_or_else(|| {
                 self.raise_parse_error("EXPECTED OPERATIONS", String::from("Found nothing"));
-                }),
+            }),
             position: self.position.clone(),
         }
     }

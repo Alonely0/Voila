@@ -117,13 +117,16 @@ impl Sum for super::Interpreter {
                 .read_to_string(&mut String::from(buffer))
                 .unwrap_or_else(|_| 0),
             Err(e) => {
-                self.raise_error("COULD NOT READ BYTES FROM FILE", format!("Cannot read {}: {:?}", self.__file__, e));
-            }
+                self.raise_error(
+                    "COULD NOT READ BYTES FROM FILE",
+                    format!("Cannot read {}: {:?}", self.__file__, e),
+                );
+            },
         };
 
         match panic::catch_unwind(|| buffer.as_bytes()) {
             Ok(bytes) => bytes,
-            Err(_) => &[0u8]
+            Err(_) => &[0u8],
         }
     }
 }

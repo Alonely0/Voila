@@ -37,10 +37,10 @@ impl Cycles for super::Parser {
                     Some("Semicolon") => {
                         self.push_current_cycle(&mut cache_tokens);
                         cache_tokens = vec![];
-                    }
+                    },
                     _ => {
                         cache_tokens.push(i);
-                    }
+                    },
                 }
             }
         }
@@ -84,7 +84,7 @@ impl Cycles for super::Parser {
                             );
                         }
                         self.current_function = token.content.clone();
-                    }
+                    },
 
                     // is it a '('? ok
                     // are we parsing arguments? not great
@@ -109,7 +109,7 @@ impl Cycles for super::Parser {
                                 );
                             }
                         }
-                    }
+                    },
 
                     // is it a ')'? ok
                     // are we parsing arguments? great
@@ -135,7 +135,7 @@ impl Cycles for super::Parser {
                                 format!("Expected a function argument, found {}", token.content),
                             );
                         }
-                    }
+                    },
 
                     // is it a literal? ok
                     // are we parsing arguments? not great
@@ -162,7 +162,7 @@ impl Cycles for super::Parser {
 
                             // get sure there is a value in self.current_function_args
                             match self.current_function_args.last().cloned() {
-                                Some(_) => {}
+                                Some(_) => {},
                                 None => self.current_function_args.push(vec![]),
                             }
 
@@ -183,7 +183,7 @@ impl Cycles for super::Parser {
                                 format!("Expected a (, found {}", token.content),
                             );
                         }
-                    }
+                    },
 
                     // is it a ','? ok
                     // was a function behind? great
@@ -201,16 +201,16 @@ impl Cycles for super::Parser {
                             );
                         } else {
                             match Some(&*last_token.tok_type) {
-                                Some("Txt") | Some("Var") | Some("Rgx") => {}
+                                Some("Txt") | Some("Var") | Some("Rgx") => {},
                                 _ => {
                                     self.raise_parse_error(
                                         "UNEXPECTED TOKEN",
                                         format!("',' was not expected"),
                                     );
-                                }
+                                },
                             }
                         }
-                    }
+                    },
 
                     // is it a '{' or a '}'? not ok
                     "Lbrace" | "Rbrace" => {
@@ -228,7 +228,7 @@ impl Cycles for super::Parser {
                                 ),
                             );
                         }
-                    }
+                    },
 
                     // no one matched? not ok
                     _ => self.raise_parse_error(

@@ -51,11 +51,11 @@ impl Operators for super::Interpreter {
             LiteralKind::Rgx => {
                 rgx = x.content.clone();
                 str = y.content.clone();
-            }
+            },
             _ => {
                 rgx = y.content.clone();
                 str = x.content.clone();
-            }
+            },
         };
 
         // eval the regexp with the string
