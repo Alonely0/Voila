@@ -110,7 +110,6 @@ impl Sum for super::Interpreter {
         }
     }
     fn read_bytes_of_file(&self, path: &String) -> Vec<u8> {
-        // let buffer = "";
         let mut buffer = Vec::new();
         let file = File::open(path);
         match file {
@@ -122,10 +121,6 @@ impl Sum for super::Interpreter {
                 self.raise_error("COULD NOT READ BYTES FROM FILE", format!("Cannot read {}: {:?}", self.__file__, e));
             }
         };
-        // match panic::catch_unwind(|| buffer.as_bytes()) {
-        //     Ok(bytes) => bytes,
-        //     Err(_) => &[0u8]
-        // }
         buffer
     }
 }
