@@ -7,25 +7,29 @@ on:
     branches: [main]
 
 jobs:
-  check:
+  build:
     name: Rust Windows ${{ matrix.rust }}
-    runs-on: windows-latest
+    runs-on: windows-2019
     strategy:
       matrix:
         rust: [nightly]
+
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
       - name: Install minimal ${{ matrix.rust }} rust
         uses: actions-rs/toolchain@v1
         with:
           override: true
           profile: minimal
           toolchain: ${{ matrix.rust }}
-      - run: cargo -Vv && rustc -Vv
-      - run: cargo check
-      - run: cargo check --all-features
-        if: ${{ matrix.rust == 'stable' }}
-      - run: cargo fmt --all -- --check
-        if: ${{ matrix.rust == 'stable' }}
-      - run: cargo test
-        if: ${{ matrix.rust == 'stable' }}
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v1
+
+      - name: Check local package
+        run: cargo check
+
+      - name: Run tests
+        run: cargo test

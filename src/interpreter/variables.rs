@@ -34,7 +34,7 @@ impl Variables for super::Interpreter {
                     kind: LiteralKind::Str,
                     content: format!("{}", name),
                 })
-            }
+            },
             "parent" => {
                 let mut parent_path = PathBuf::new();
                 parent_path.push(PathBuf::from(&self.__file__).parent().unwrap());
@@ -43,7 +43,7 @@ impl Variables for super::Interpreter {
                     kind: LiteralKind::Str,
                     content: self.absolutize(&parent_path.into_os_string().into_string().unwrap()),
                 })
-            }
+            },
             "size=tb" => {
                 // get metadata
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
@@ -61,7 +61,7 @@ impl Variables for super::Interpreter {
                     kind: LiteralKind::Str,
                     content: String::from(str_chars.as_str()),
                 })
-            }
+            },
             "size=gb" => {
                 // get metadata
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
@@ -79,7 +79,7 @@ impl Variables for super::Interpreter {
                     kind: LiteralKind::Str,
                     content: String::from(str_chars.as_str()),
                 })
-            }
+            },
             "size=mb" => {
                 // get metadata
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
@@ -97,7 +97,7 @@ impl Variables for super::Interpreter {
                     kind: LiteralKind::Str,
                     content: String::from(str_chars.as_str()),
                 })
-            }
+            },
             "size=kb" => {
                 // get metadata
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
@@ -115,14 +115,14 @@ impl Variables for super::Interpreter {
                     kind: LiteralKind::Str,
                     content: String::from(str_chars.as_str()),
                 })
-            }
+            },
             "size=bs" => {
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 Ok(Literal {
                     kind: LiteralKind::Str,
                     content: format!("{}", metadata.len()),
                 })
-            }
+            },
             "empty" => {
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 // 1 instead of 0 because sometimes a file is empty but returns 1
@@ -132,14 +132,14 @@ impl Variables for super::Interpreter {
                     kind: LiteralKind::Str,
                     content: format!("{}", empty),
                 })
-            }
+            },
             "readonly" => {
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 Ok(Literal {
                     kind: LiteralKind::Str,
                     content: format!("{}", metadata.permissions().readonly()),
                 })
-            }
+            },
             "sum=md5" => Ok(Literal {
                 kind: LiteralKind::Str,
                 content: self.get_sum_of(&self.__file__, SumTypes::Md5),
@@ -179,7 +179,7 @@ impl Variables for super::Interpreter {
                 };
 
                 Ok(Literal { kind, content })
-            }
+            },
             "creation=date" => {
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 // stuff to get date & hour
@@ -202,7 +202,7 @@ impl Variables for super::Interpreter {
                 let kind = LiteralKind::Str;
                 let content = String::from(str_chars.as_str());
                 Ok(Literal { kind, content })
-            }
+            },
             "creation=hour" => {
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 // stuff to get date & hour
@@ -230,7 +230,7 @@ impl Variables for super::Interpreter {
                 let kind = LiteralKind::Str;
                 let content = String::from(str_chars.as_str());
                 Ok(Literal { kind, content })
-            }
+            },
             "lastChange=date" => {
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 // stuff to get date & hour
@@ -253,7 +253,7 @@ impl Variables for super::Interpreter {
                 let kind = LiteralKind::Str;
                 let content = String::from(str_chars.as_str());
                 Ok(Literal { kind, content })
-            }
+            },
             "lastChange=hour" => {
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 // stuff to get date & hour
@@ -280,7 +280,7 @@ impl Variables for super::Interpreter {
                 let kind = LiteralKind::Str;
                 let content = String::from(str_chars.as_str());
                 Ok(Literal { kind, content })
-            }
+            },
             "lastAccess=date" => {
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 // stuff to get date & hour
@@ -303,7 +303,7 @@ impl Variables for super::Interpreter {
                 let kind = LiteralKind::Str;
                 let content = String::from(str_chars.as_str());
                 Ok(Literal { kind, content })
-            }
+            },
             "lastAccess=hour" => {
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 // stuff to get date & hour
@@ -330,7 +330,7 @@ impl Variables for super::Interpreter {
                 let kind = LiteralKind::Str;
                 let content = String::from(str_chars.as_str());
                 Ok(Literal { kind, content })
-            }
+            },
             _ => {
                 let kind = LiteralKind::Str;
                 let content = if var.kind == LiteralKind::Var {
@@ -339,7 +339,7 @@ impl Variables for super::Interpreter {
                     var.content.clone()
                 };
                 Ok(Literal { kind, content })
-            }
+            },
         }
     }
 }

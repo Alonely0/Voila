@@ -118,8 +118,11 @@ impl Sum for super::Interpreter {
                 reader.read_to_end(&mut buffer).unwrap();
             }
             Err(e) => {
-                self.raise_error("COULD NOT READ BYTES FROM FILE", format!("Cannot read {}: {:?}", self.__file__, e));
-            }
+                self.raise_error(
+                    "COULD NOT READ BYTES FROM FILE",
+                    format!("Cannot read {}: {:?}", self.__file__, e),
+                );
+            },
         };
         buffer
     }
