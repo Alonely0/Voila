@@ -1,1 +1,2 @@
 edition = "2021"
+match_block_trailing_comma = true
