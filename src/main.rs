@@ -1,4 +1,4 @@
-#![deny(unsafe_code)] // unsafe code makes ferris get nervous
+#![forbid(unsafe_code)] // unsafe code makes ferris get nervous
 #![feature(format_args_capture)]
 #![feature(decl_macro)]
 
