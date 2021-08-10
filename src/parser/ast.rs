@@ -133,6 +133,10 @@ impl Func {
 // custom display formatting: TOKEN_TYPE [ TOKEN_CONTENT ]
 impl fmt::Display for Conditional {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Conditional [ {} {:?} {} ]", self.val1.content, self.op, self.val2.content)
+        write!(
+            f,
+            "Conditional [ {} {:?} {} ]",
+            self.val1.content, self.op, self.val2.content
+        )
     }
 }
