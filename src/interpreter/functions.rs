@@ -157,7 +157,7 @@ impl Functions for super::Interpreter {
             // doing a hashmap of stuff deleted and then a checker,
             // enough overhead & bottlenecks with the async hell
             // of the cycles & the interpreter
-            if let Ok(result) = is_file  {
+            if let Ok(result) = is_file {
                 if result {
                     if let Err(err) =
                         fs::copy(self.trim_spaces(&args[0]), self.trim_spaces(&args[1]))

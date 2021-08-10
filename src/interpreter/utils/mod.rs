@@ -5,8 +5,8 @@ use sha1::{Digest, Sha1};
 use sha2::*;
 use std::fs;
 use std::fs::File;
-use std::io::prelude::*;
 use std::io;
+use std::io::prelude::*;
 use std::path::Path;
 pub use string::Str;
 pub use sum::Sum;
@@ -116,7 +116,7 @@ impl Sum for super::Interpreter {
             Ok(f) => {
                 let mut reader = io::BufReader::new(f);
                 reader.read_to_end(&mut buffer).unwrap();
-            }
+            },
             Err(e) => {
                 self.raise_error(
                     "COULD NOT READ BYTES FROM FILE",
