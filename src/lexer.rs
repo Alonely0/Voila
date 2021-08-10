@@ -140,9 +140,9 @@ impl Token {
     }
 }
 
-// custom display formatting: TOKEN_TYPE[ TOKEN_CONTENT ]
+// custom display formatting: TOKEN_TYPE [ TOKEN_CONTENT ]
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}[ {} ]", self.tok_type, self.content)
+        write!(f, "{} [ {} ]", self.tok_type, self.content)
     }
 }

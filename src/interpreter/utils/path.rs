@@ -32,9 +32,7 @@ pub fn file_generator(interpreter: super::super::Interpreter) -> impl Stream<Ite
                 .into_iter()
                 .filter_map(|e| e.ok())
             {
-                if e.metadata().unwrap().is_file() {
-                    yield e.path().display().to_string();
-                }
+                if e.metadata().unwrap().is_file() { yield e.path().display().to_string(); } else { continue };
             }
             return;
         } else {
@@ -42,7 +40,7 @@ pub fn file_generator(interpreter: super::super::Interpreter) -> impl Stream<Ite
                 let p = entry.unwrap().path();
                 let path = p.absolutize().unwrap();
                 if let Ok(metadata) = fs::metadata(&path) {
-                    yield if metadata.is_file() { path.to_str().unwrap().to_string() } else { continue };
+                    if metadata.is_file() { yield path.to_str().unwrap().to_string() } else { continue };
                 }
             }
             return;

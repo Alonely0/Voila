@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Debug, Clone)]
 pub struct AST {
     pub conditionals: Vec<Conditional>,
@@ -125,5 +127,12 @@ impl Func {
             "shell" => Func::SHELL,
             _ => Func::NULL,
         }
+    }
+}
+
+// custom display formatting: TOKEN_TYPE [ TOKEN_CONTENT ]
+impl fmt::Display for Conditional {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Conditional [ {} {:?} {} ]", self.val1.content, self.op, self.val2.content)
     }
 }

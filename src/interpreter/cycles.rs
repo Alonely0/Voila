@@ -26,9 +26,9 @@ impl Cycles for super::Interpreter {
     }
 
     fn execute_operation(&self, operation: &Function) {
-        println_on_debug!("Executing [ {:#?} ]", &operation);
+        println_on_debug!("    Executing [ {:#?} ]", &operation);
         let args: Vec<String> = self.supervec_literals_to_args(operation.args.to_owned());
-        println_on_debug!("Args {:#?}", &args);
+        println_on_debug!("    Args {:#?}", &args);
         match operation.function {
             Func::DELETE => self.r#delete(&args),
             Func::CREATE => self.r#create(&args),

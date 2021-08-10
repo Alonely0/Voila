@@ -20,7 +20,7 @@ impl Conditionals for super::Interpreter {
         for i in 0..self.__ast__.conditionals.len() {
             // get conditional
             let conditional: &Conditional = &self.__ast__.conditionals[i];
-            println_on_debug!("    {:?}: {}", &conditional, i);
+            println_on_debug!("    {}", &conditional);
 
             // is there a var? ok, give the value
             // no? return me the original object
@@ -65,8 +65,8 @@ impl Conditionals for super::Interpreter {
         }
         // get final result
         let conditional_result = self.eval_relationships(&full_conditional);
-        println_on_debug!("    Conditional [ {} ]", &full_conditional);
-        println_on_debug!("    Result [ {} ]", &conditional_result);
+        println_on_debug!("    Conditional Evaluated [ {} ]", &full_conditional);
+        println_on_debug!("    Result Evaluated [ {} ]", &conditional_result);
 
         conditional_result
     }
