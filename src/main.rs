@@ -11,7 +11,8 @@ mod lexer;
 mod macros;
 mod parser;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let cli_args: cli::Cli = cli::get_cli_args();
 
     println_on_debug!(
@@ -28,8 +29,7 @@ For more information see the README.\n
 
     let tokens: Vec<lexer::Token> = lexer::lex(&cli_args.source);
     let ast: parser::ast::AST = parser::parse(tokens);
-    let interpreter = interpreter::run(ast, cli_args.dir, cli_args.recursive);
-    block_on(interpreter); // wait interpreter to finish
+    interpreter::run(ast, cli_args.dir, cli_args.recursive).await;
 
     println_on_debug!(
         "\n------------------------------  VOILA EXECUTION ENDED  --------------------------------"
