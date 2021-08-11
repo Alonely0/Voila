@@ -24,15 +24,17 @@ pub fn file_generator(interpreter: super::super::Interpreter) -> impl Stream<Ite
             ),
         )
     }
-    let generator = stream! {
+    stream! {
         // is it recursive? ok, use the library
         // no? we use our implementation
         if interpreter.__recursive__ {
             for e in WalkDir::new(&interpreter.__directory__)
                 .into_iter()
-                .filter_map(|e| e.ok())
             {
-                if e.metadata().unwrap().is_file() { yield e.path().display().to_string(); } else { continue };
+                match e {
+                    Ok(entry) => if entry.metadata().unwrap().is_file() { yield entry.path().display().to_string(); } else { continue },
+                    Err(_) => continue,
+                };
             }
             return;
         } else {
@@ -45,6 +47,5 @@ pub fn file_generator(interpreter: super::super::Interpreter) -> impl Stream<Ite
             }
             return;
         }
-    };
-    return generator;
+    }
 }
