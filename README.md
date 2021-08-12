@@ -64,6 +64,8 @@ These are the available operations/functions:
 
 **⚠️ WARNING: If you use functions that access and/or modify the same file/directory in the same cycle it could cause undefined behavior because the file would be accessed and overwritten at the same time. For avoiding that, consider splitting those functions into different cycles. A workaround is being discussed in [#5](https://github.com/Alonely0/Voila/issues/5)**
 
+[![forthebadge](https://forthebadge.com/images/badges/not-a-bug-a-feature.svg)](https://forthebadge.com)
+
 ### Examples
 
 * `voila /backup "@creation=date <= 2020-01-01 { print(@name has been deleted) delete(@path) }`: Voila will delete every file in /backup whose creation was earlier to 2020 printing a delete message.
