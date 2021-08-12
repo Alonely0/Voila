@@ -31,9 +31,9 @@ pub fn file_generator(interpreter: super::super::Interpreter) -> impl Stream<Ite
             for e in WalkDir::new(&interpreter.__directory__)
                 .into_iter()
             {
-                match e {
-                    Ok(entry) => if entry.metadata().unwrap().is_file() { yield entry.path().display().to_string(); } else { continue },
-                    Err(_) => continue,
+                if let Ok(entry) = e {
+                    if let Ok(metadata) = entry.metadata() {
+                        if metadata.is_file() { yield entry.path().display().to_string(); } else { continue } }
                 };
             }
             return;
