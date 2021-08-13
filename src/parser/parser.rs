@@ -13,7 +13,7 @@ pub struct Parser {
     pub cycles: Vec<super::Cycle>,
     pub raw_cycles: Vec<Vec<super::Token>>,
     pub current_cycle_funcs: Vec<super::Function>,
-    pub current_function: String,
+    pub current_function: Option<String>,
     pub current_function_args: Vec<Vec<super::Literal>>,
     pub parsing_args: bool,
 }

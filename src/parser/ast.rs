@@ -70,7 +70,6 @@ pub enum Func {
     MOVE,
     COPY,
     SHELL,
-    NULL,
 }
 
 impl Literal {
@@ -116,16 +115,16 @@ impl CondRelationship {
 }
 
 impl Func {
-    pub fn from_name(func_name: String) -> Self {
+    pub fn from_name(func_name: String) -> Result<Self, ()> {
         match func_name.trim() {
-            "delete" => Func::DELETE,
-            "create" => Func::CREATE,
-            "mkdir" => Func::MKDIR,
-            "print" => Func::PRINT,
-            "move" => Func::MOVE,
-            "copy" => Func::COPY,
-            "shell" => Func::SHELL,
-            _ => Func::NULL,
+            "delete" => Ok(Func::DELETE),
+            "create" => Ok(Func::CREATE),
+            "mkdir" => Ok(Func::MKDIR),
+            "print" => Ok(Func::PRINT),
+            "move" => Ok(Func::MOVE),
+            "copy" => Ok(Func::COPY),
+            "shell" => Ok(Func::SHELL),
+            _ => Err(()),
         }
     }
 }

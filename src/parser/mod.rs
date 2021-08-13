@@ -75,7 +75,7 @@ impl Parser {
             cycles: vec![],
             raw_cycles: vec![],
             current_cycle_funcs: vec![],
-            current_function: "".to_string(),
+            current_function: None,
             current_function_args: vec![],
             parsing_args: false,
         }

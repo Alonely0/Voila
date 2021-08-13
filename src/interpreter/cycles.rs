@@ -37,7 +37,6 @@ impl Cycles for super::Interpreter {
             Func::MOVE => self.r#move(&args),
             Func::COPY => self.r#copy(&args),
             Func::SHELL => self.r#shell(&args),
-            Func::NULL => { /* parser will already have taken care of unknown functions */ },
         }
     }
 }

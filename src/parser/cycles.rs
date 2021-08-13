@@ -1,4 +1,5 @@
 use super::*;
+use if_chain::if_chain;
 
 pub trait Cycles {
     fn push_current_cycle(&mut self, tokens_index_list: &mut Vec<usize>);
@@ -51,7 +52,7 @@ impl Cycles for super::Parser {
         for cycle in &self.raw_cycles {
             // reset some stuff
             self.current_cycle_funcs = vec![];
-            self.current_function = "NULL".to_string();
+            self.current_function = None;
 
             // for token in cycle
             for i in 0..cycle.len() {
@@ -83,7 +84,7 @@ impl Cycles for super::Parser {
                                 ),
                             );
                         }
-                        self.current_function = token.content.clone();
+                        self.current_function = Some(token.content.clone());
                     },
 
                     // is it a '('? ok
@@ -100,7 +101,7 @@ impl Cycles for super::Parser {
                                 ),
                             );
                         } else {
-                            if self.current_function != "NULL" {
+                            if let Some(_) = self.current_function {
                                 self.parsing_args = true;
                             } else {
                                 self.raise_parse_error(
@@ -116,25 +117,33 @@ impl Cycles for super::Parser {
                     // was a function behind? great
                     // now function is unset
                     "Rparen" => {
-                        if self.parsing_args && self.current_function != "NULL" {
-                            self.parsing_args = false;
-                            self.current_cycle_funcs.push(Function {
-                                function: Func::from_name(self.current_function.clone()),
-                                args: self.current_function_args.clone(),
-                            });
-                            self.current_function = "NULL".to_string();
-                            self.current_function_args = vec![];
-                        } else if !self.parsing_args {
-                            self.raise_parse_error(
-                                "UNEXPECTED TOKEN",
-                                format!("Expected a function, found {}", token.content),
-                            );
-                        } else {
-                            self.raise_parse_error(
-                                "UNEXPECTED TOKEN",
-                                format!("Expected a function argument, found {}", token.content),
-                            );
-                        }
+                        if_chain! {
+                            if let Some(_) = self.current_function;
+                            if self.parsing_args;
+                            then {
+                                self.parsing_args = false;
+                                self.current_cycle_funcs.push(Function {
+                                    function: Func::from_name(
+                                        self.current_function.clone().unwrap()
+                                    ).unwrap(),
+                                    args: self.current_function_args.clone(),
+                                });
+                                self.current_function = None;
+                                self.current_function_args = vec![];
+                            } else {
+                                if !self.parsing_args {
+                                    self.raise_parse_error(
+                                        "UNEXPECTED TOKEN",
+                                        format!("Expected a function, found {}", token.content),
+                                    );
+                                } else {
+                                self.raise_parse_error(
+                                    "UNEXPECTED TOKEN",
+                                    format!("Expected a function argument, found {}", token.content),
+                                );
+                            }
+                            }
+                        };
                     },
 
                     // is it a literal? ok
@@ -172,7 +181,7 @@ impl Cycles for super::Parser {
                             // change the vector with the new & old arguments with the one in
                             // self.current_function_args
                             mem::swap(&mut f_args, &mut self.current_function_args[len]);
-                        } else if self.current_function == "NULL" {
+                        } else if let None = self.current_function {
                             self.raise_parse_error(
                                 "UNEXPECTED TOKEN",
                                 format!("Expected a function, found {}", token.content),
@@ -189,7 +198,7 @@ impl Cycles for super::Parser {
                     // was a function behind? great
                     // are we parsing arguments? great
                     "Comma" => {
-                        if self.current_function == "NULL" {
+                        if let None = self.current_function {
                             self.raise_parse_error(
                                 "UNEXPECTED TOKEN",
                                 format!("Expected a function, found {}", token.content),
