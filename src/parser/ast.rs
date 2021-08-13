@@ -21,9 +21,9 @@ pub enum LiteralKind {
 
 #[derive(Debug, Clone)]
 pub struct Conditional {
-    pub val1: Literal,                                   //* Example: @name
-    pub op: CondOperator,                                //* Example: ~=
-    pub val2: Literal,                                   //* Example: /project-.*/
+    pub val1: Literal,                                           //* Example: @name
+    pub op: CondOperator,                                        //* Example: ~=
+    pub val2: Literal,                                           //* Example: /project-.*/
     pub next_conditional_relationship: Option<CondRelationship>, //* Example: &&
     pub position: usize,
 }
@@ -42,8 +42,8 @@ pub enum CondOperator {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum CondRelationship {
-    And,  //* &&
-    Any,  //* ||
+    And, //* &&
+    Any, //* ||
 }
 
 #[derive(Debug, Clone)]
@@ -73,9 +73,18 @@ impl Literal {
         // Create a Literal & return it
         let content = token.content.to_owned();
         match token.tok_type.as_str() {
-            "Txt" => Ok(Self { content, kind: LiteralKind::Str }),
-            "Var" => Ok(Self { content, kind: LiteralKind::Var }),
-            "Rgx" => Ok(Self { content, kind: LiteralKind::Rgx }),
+            "Txt" => Ok(Self {
+                content,
+                kind: LiteralKind::Str,
+            }),
+            "Var" => Ok(Self {
+                content,
+                kind: LiteralKind::Var,
+            }),
+            "Rgx" => Ok(Self {
+                content,
+                kind: LiteralKind::Rgx,
+            }),
             _ => Err(content),
         }
     }
