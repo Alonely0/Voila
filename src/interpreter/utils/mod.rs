@@ -113,8 +113,8 @@ impl Sum for super::Interpreter {
         let mut buffer = Vec::new();
         let file = File::open(path);
         if let Ok(f) = file {
-                let mut reader = io::BufReader::new(f);
-                reader.read_to_end(&mut buffer).unwrap();
+            let mut reader = io::BufReader::new(f);
+            reader.read_to_end(&mut buffer).unwrap();
         }
         buffer
     }
