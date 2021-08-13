@@ -29,17 +29,17 @@ impl Conditionals for super::Parser {
                 // convert it to a literal, if was not converted successfully,
                 // we throw an error. Else, we create the value
                 let literal_val1 = Literal::from_token(token);
-                self.val1 = match literal_val1.kind {
-                    LiteralKind::Err => {
+                self.val1 = match literal_val1 {
+                    Err(content) => {
                         self.raise_parse_error(
                             "UNEXPECTED TOKEN",
                             format!(
                                 "Expected a Variable, an Identifier or a Regex, got \"{}\"",
-                                literal_val1.content
+                                content
                             ),
                         );
                     },
-                    _ => Some(literal_val1),
+                    _ => Some(literal_val1.unwrap()),
                 };
             } else if let None = self.oper {
                 println_on_debug!("  parsing oper, token {token}, next token {next_token}");
@@ -74,17 +74,17 @@ impl Conditionals for super::Parser {
                 // convert it to a literal, if was not converted successfully,
                 // we throw an error. Else, we create the value
                 let literal_val2 = Literal::from_token(token);
-                self.val2 = match literal_val2.kind {
-                    LiteralKind::Err => {
+                self.val2 = match literal_val2 {
+                    Err(content) => {
                         self.raise_parse_error(
                             "UNEXPECTED TOKEN",
                             format!(
                                 "Expected a Variable, an Identifier or a Regex, got \"{}\"",
-                                literal_val2.content
+                                content
                             ),
                         );
                     },
-                    _ => Some(literal_val2),
+                    _ => Some(literal_val2.unwrap()),
                 };
             } else if let None = self.rela {
                 println_on_debug!("  parsing rela, token {token}, next token {next_token}");

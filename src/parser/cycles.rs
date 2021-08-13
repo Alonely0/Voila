@@ -154,7 +154,7 @@ impl Cycles for super::Parser {
                     "Txt" | "Var" | "Rgx" => {
                         if self.parsing_args && last_token.content == "," {
                             self.current_function_args
-                                .push(vec![Literal::from_token(token)]);
+                                .push(vec![Literal::from_token(token).unwrap()]);
                         } else if self.parsing_args && last_token.content != "," {
                             // most spaghetti part of the whole parsed imo,
                             // but gets the job done and i did not notice any bug
@@ -167,7 +167,7 @@ impl Cycles for super::Parser {
                                 .unwrap_or_else(|| vec![]);
 
                             // push the token
-                            f_args.push(Literal::from_token(token));
+                            f_args.push(Literal::from_token(token).unwrap());
 
                             // get sure there is a value in self.current_function_args
                             match self.current_function_args.last().cloned() {

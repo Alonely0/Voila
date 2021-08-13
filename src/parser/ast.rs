@@ -17,7 +17,6 @@ pub enum LiteralKind {
     Str, //* String
     Var, //* Variable
     Rgx, //* Regular Expression
-    Err, //* ERROR
 }
 
 #[derive(Debug, Clone)]
@@ -73,17 +72,15 @@ pub enum Func {
 }
 
 impl Literal {
-    pub fn from_token(token: &super::super::lexer::Token) -> Literal {
+    pub fn from_token(token: &super::super::lexer::Token) -> Result<Self, String> {
         // Create a Literal & return it
-        let content = token.content.clone();
-        let kind = match token.tok_type.as_str() {
-            "Txt" => LiteralKind::Str,
-            "Var" => LiteralKind::Var,
-            "Rgx" => LiteralKind::Rgx,
-            _ => LiteralKind::Err,
-        };
-
-        Literal { kind, content }
+        let content = token.content.to_owned();
+        match token.tok_type.as_str() {
+            "Txt" => Ok(Self { content, kind: LiteralKind::Str }),
+            "Var" => Ok(Self { content, kind: LiteralKind::Var }),
+            "Rgx" => Ok(Self { content, kind: LiteralKind::Rgx }),
+            _ => Err(content),
+        }
     }
 }
 
