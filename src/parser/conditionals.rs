@@ -44,28 +44,31 @@ impl Conditionals for super::Parser {
             } else if let None = self.oper {
                 println_on_debug!("  parsing oper, token {token}, next token {next_token}");
 
-                // if error, exit, else, continue. simple
-                self.oper = match CondOperator::from_name(&token.tok_type) {
-                    CondOperator::Er => {
+                // get sure the correct operator is being used
+                let op = CondOperator::from_name(&token.tok_type);
+                self.oper = match op {
+                    Err(_) => {
                         self.raise_parse_error(
                             "UNEXPECTED TOKEN",
                             format!("Expected an operator, got {}", token.content),
                         );
                     },
-                    CondOperator::Re | CondOperator::Rn => {
+                    Ok(CondOperator::Re) | Ok(CondOperator::Rn) => {
                         if next_token.tok_type != "Rgx" && last_token.tok_type != "Rgx" {
                             self.raise_parse_error(
                                 "UNEXPECTED TOKEN",
                                  format!(
                                      "Expected a different operator, {} is only for regular expressions. Consider using other operator, like == or !=", token.content))
                         }
-                        Some(CondOperator::from_name(&token.tok_type))
+                        Some(op.unwrap())
                     },
                     _ => {
                         if next_token.tok_type == "Rgx" || last_token.tok_type == "Rgx" {
-                            self.raise_parse_error("UNEXPECTED TOKEN", format!("Expected a different operator, {} is not for regular expressions. Consider using other operator, like ~= or ~!", token.content))
+                            self.raise_parse_error("UNEXPECTED TOKEN", format!(
+                                "Expected a different operator, {} is not for regular expressions. Consider using other operator, like ~= or ~!", token.content
+                            ))
                         }
-                        Some(CondOperator::from_name(&token.tok_type))
+                        Some(op.unwrap())
                     },
                 }
             } else if let None = self.val2 {

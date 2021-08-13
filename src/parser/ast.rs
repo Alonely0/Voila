@@ -38,7 +38,6 @@ pub enum CondOperator {
     Le, //* <= |=> True if the first value is equal or less than the second
     Re, //* ~= |=> True if the a value matches the regex provided in the other value
     Rn, //* ~! |=> True if the a value doesn't match the regex provided in the other value
-    Er, //* ERROR
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -85,17 +84,17 @@ impl Literal {
 }
 
 impl CondOperator {
-    pub fn from_name(name: &String) -> Self {
+    pub fn from_name(name: &String) -> Result<Self, ()> {
         match name.as_str() {
-            "Equal" => CondOperator::Eq,
-            "NEqual" => CondOperator::Ne,
-            "GreaterT" => CondOperator::Gt,
-            "GreaterTorE" => CondOperator::Ge,
-            "LessT" => CondOperator::Lt,
-            "LessTorE" => CondOperator::Le,
-            "RgxMatch" => CondOperator::Re,
-            "RgxNMatch" => CondOperator::Rn,
-            _ => CondOperator::Er,
+            "Equal" => Ok(CondOperator::Eq),
+            "NEqual" => Ok(CondOperator::Ne),
+            "GreaterT" => Ok(CondOperator::Gt),
+            "GreaterTorE" => Ok(CondOperator::Ge),
+            "LessT" => Ok(CondOperator::Lt),
+            "LessTorE" => Ok(CondOperator::Le),
+            "RgxMatch" => Ok(CondOperator::Re),
+            "RgxNMatch" => Ok(CondOperator::Rn),
+            _ => Err(()),
         }
     }
 }
