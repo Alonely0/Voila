@@ -93,14 +93,15 @@ impl Conditionals for super::Parser {
                 println_on_debug!("  parsing rela, token {token}, next token {next_token}");
 
                 // if error, exit, else, continue. simple
-                self.rela = match CondRelationship::from_name(&token.tok_type) {
-                    CondRelationship::Err => {
+                let rela = CondRelationship::from_name(&token.tok_type);
+                self.rela = match rela {
+                    Err(_) => {
                         self.raise_parse_error(
                             "UNEXPECTED SYMBOL",
                             format!("Expected &&, || or {{, got {}", token.content),
                         );
                     },
-                    _ => Some(CondRelationship::from_name(&token.tok_type)),
+                    _ => rela.unwrap(),
                 };
 
                 // we reached the end of this conditional, so we stop the loop
@@ -127,9 +128,7 @@ impl Conditionals for super::Parser {
             val2: self.val2.clone().unwrap_or_else(|| {
                 self.raise_parse_error("EXPECTED VALUE", String::from("Found nothing"));
             }),
-            next_conditional_relationship: self.rela.clone().unwrap_or_else(|| {
-                self.raise_parse_error("EXPECTED OPERATIONS", String::from("Found nothing"));
-            }),
+            next_conditional_relationship: self.rela.clone(),
             position: self.position.clone(),
         }
     }

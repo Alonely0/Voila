@@ -48,17 +48,17 @@ impl Conditionals for super::Interpreter {
             full_conditional = if i == 0 {
                 // if is the first conditional, the format is `VAL RELA?`
                 match conditional.next_conditional_relationship {
-                    CondRelationship::And => format!("{} &&", cond_result),
-                    CondRelationship::Any => format!("{} ||", cond_result),
+                    Some(CondRelationship::And) => format!("{} &&", cond_result),
+                    Some(CondRelationship::Any) => format!("{} ||", cond_result),
                     _ => format!("{}", cond_result),
                 }
             } else {
                 // if it has another conditional behind, the format is
                 // `... VAL RELA?`
                 match conditional.next_conditional_relationship {
-                    CondRelationship::And => format!("{} {} &&", &full_conditional, cond_result),
-                    CondRelationship::Any => format!("{} {} ||", &full_conditional, cond_result),
-                    _ => format!("{} {}", &full_conditional, cond_result),
+                    Some(CondRelationship::And) => format!("{} {} &&", &full_conditional, cond_result),
+                    Some(CondRelationship::Any) => format!("{} {} ||", &full_conditional, cond_result),
+                    None => format!("{} {}", &full_conditional, cond_result),
                 }
             };
         }

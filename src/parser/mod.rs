@@ -32,7 +32,7 @@ pub fn parse(tokens: Vec<super::lexer::Token>) -> AST {
             // conditionals will stop when the condr of the next is null,
             // so then we stop
             match conditional.next_conditional_relationship {
-                CondRelationship::Null => break,
+                None => break,
                 _ => continue,
             }
         }

@@ -24,7 +24,7 @@ pub struct Conditional {
     pub val1: Literal,                                   //* Example: @name
     pub op: CondOperator,                                //* Example: ~=
     pub val2: Literal,                                   //* Example: /project-.*/
-    pub next_conditional_relationship: CondRelationship, //* Example: &&
+    pub next_conditional_relationship: Option<CondRelationship>, //* Example: &&
     pub position: usize,
 }
 
@@ -44,8 +44,6 @@ pub enum CondOperator {
 pub enum CondRelationship {
     And,  //* &&
     Any,  //* ||
-    Null, //* NOTHING
-    Err,  //* ERROR
 }
 
 #[derive(Debug, Clone)]
@@ -100,12 +98,12 @@ impl CondOperator {
 }
 
 impl CondRelationship {
-    pub fn from_name(name: &String) -> Self {
+    pub fn from_name(name: &String) -> Result<Option<Self>, ()> {
         match name.as_str() {
-            "And" => CondRelationship::And,
-            "Any" => CondRelationship::Any,
-            "Lbrace" => CondRelationship::Null,
-            _ => CondRelationship::Err,
+            "And" => Ok(Some(CondRelationship::And)),
+            "Any" => Ok(Some(CondRelationship::Any)),
+            "Lbrace" => Ok(None),
+            _ => Err(()),
         }
     }
 }
