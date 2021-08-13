@@ -56,8 +56,12 @@ impl Conditionals for super::Interpreter {
                 // if it has another conditional behind, the format is
                 // `... VAL RELA?`
                 match conditional.next_conditional_relationship {
-                    Some(CondRelationship::And) => format!("{} {} &&", &full_conditional, cond_result),
-                    Some(CondRelationship::Any) => format!("{} {} ||", &full_conditional, cond_result),
+                    Some(CondRelationship::And) => {
+                        format!("{} {} &&", &full_conditional, cond_result)
+                    },
+                    Some(CondRelationship::Any) => {
+                        format!("{} {} ||", &full_conditional, cond_result)
+                    },
                     None => format!("{} {}", &full_conditional, cond_result),
                 }
             };
