@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 pub fn get_cli_args() -> Cli {
-    return Cli::from_args();
+    Cli::from_args()
 }
 
 #[derive(StructOpt)]

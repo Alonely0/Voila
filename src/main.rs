@@ -26,10 +26,9 @@ For more information see the README.\n
         env!("CARGO_PKG_VERSION")
     );
 
-    let tokens: Vec<lexer::Token> = lexer::lex(&cli_args.source);
-    let ast: parser::ast::AST = parser::parse(tokens);
-    let interpreter = interpreter::run(ast, cli_args.dir, cli_args.recursive);
-    block_on(interpreter); // wait interpreter to finish
+    let tokens: Vec<lexer::Token> = lexer::lex(&cli_args.source); // lex source
+    let ast: parser::ast::AST = parser::parse(tokens); // parse tokens
+    block_on(interpreter::run(ast, cli_args.dir, cli_args.recursive)); // wait interpreter to finish
 
     println_on_debug!(
         "\n------------------------------  VOILA EXECUTION ENDED  --------------------------------"
