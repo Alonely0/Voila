@@ -15,17 +15,9 @@ pub fn lex(source: &String) -> Vec<Token> {
 
     // convert logos' tokens to our own struct, that let us parse
     // the tokens easier and implement our own display formatting
-    loop {
-        let t_type = tokens.next();
-
-        // avoid an infinite loop, logos returns None when there
-        // are no tokens left
-        if t_type == None {
-            break;
-        }
-
+    while let Some(t_type) = tokens.next() {
         // prepare token values
-        let t_type = format!("{:?}", t_type.unwrap());
+        let t_type = format!("{:?}", t_type);
         let mut t_value = format!("{}", tokens.slice());
         match t_type.as_str() {
             "Var" => {
