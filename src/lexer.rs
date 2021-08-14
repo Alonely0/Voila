@@ -17,15 +17,16 @@ pub fn lex(source: &String) -> Vec<Token> {
     // the tokens easier and implement our own display formatting
     while let Some(t_type) = tokens.next() {
         // prepare token values
-        let t_type = format!("{:?}", t_type);
         let mut t_value = format!("{}", tokens.slice());
-        match t_type.as_str() {
-            "Var" => {
+
+        // remove unnecessary symbols on some Literals
+        match t_type {
+            Tokens::Var => {
                 let mut t_value_chars = t_value.chars();
                 t_value_chars.next();
                 t_value = t_value_chars.as_str().to_string();
             },
-            "Rgx" => {
+            Tokens::Rgx => {
                 let mut t_value_chars = t_value.chars();
                 t_value_chars.next();
                 t_value_chars.next_back();
@@ -35,7 +36,7 @@ pub fn lex(source: &String) -> Vec<Token> {
         }
 
         // create a struct with the token
-        let parsable_token = Token::new(t_type, t_value);
+        let parsable_token = Token::new(format!("{:?}", t_type), t_value);
 
         println_on_debug!("  {}", &parsable_token);
         parsable_tokens.push(parsable_token);
