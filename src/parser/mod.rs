@@ -59,29 +59,29 @@ pub fn parse(tokens: Vec<super::lexer::Token>) -> AST {
     abstract_syntax_tree
 }
 
-pub struct Parser {
+struct Parser {
     // basic stuff
-    pub tokens: Tokens,
-    pub position: usize,
+    tokens: Tokens,
+    position: usize,
 
     // conditionals' stuff
-    pub val1: Option<Literal>,
-    pub oper: Option<CondOperator>,
-    pub val2: Option<Literal>,
-    pub rela: Option<CondRelationship>,
+    val1: Option<Literal>,
+    oper: Option<CondOperator>,
+    val2: Option<Literal>,
+    rela: Option<CondRelationship>,
 
     // cycles stuff
-    pub cycles: Vec<Cycle>,
-    pub raw_cycles: Vec<Vec<Token>>,
-    pub current_cycle_funcs: Vec<Function>,
-    pub current_function: Option<String>,
-    pub current_function_args: Vec<Vec<Literal>>,
-    pub parsing_args: bool,
+    cycles: Vec<Cycle>,
+    raw_cycles: Vec<Vec<Token>>,
+    current_cycle_funcs: Vec<Function>,
+    current_function: Option<String>,
+    current_function_args: Vec<Vec<Literal>>,
+    parsing_args: bool,
 }
 
 
 impl Parser {
-    pub fn new(tokens: Tokens) -> Self {
+    fn new(tokens: Tokens) -> Self {
         Self {
             tokens,
             position: 0usize,
