@@ -31,20 +31,21 @@ These are the available variables:
 * `name`: filename
 * `path`: absolute path
 * `parent`: absolute path to file's directory
+* `ownerID`: file owner ID (unix-only)
+* `empty`: true if the file size is less than 1 byte (else false)
+* `readonly`: true if the file is ro (else false)
+* `elf`: true if the file is compliant to the Executable & Linkable Format (else false)
 * `size=tb`: file size in terabytes (2 decimals)
 * `size=gb`: file size in gigabytes (2 decimals)
 * `size=mb`: file size in megabytes (2 decimals)
 * `size=kb`: file size in kilobytes (2 decimals)
 * `size=bs`: file size bytes (no decimals)
-* `empty`: true if the file size is less than 1 byte (else false)
-* `readonly`: true if the file is ro (else false)
 * `sum=md5`: md5 checksum ***this variable might be removed in the future, md5 is completely broken***
 * `sum=sha1`: sha1 checksum ***this variable might be removed in the future, sha1 is completely broken***
 * `sum=sha224`: sha224 checksum
 * `sum=sha256`: sha256 checksum
 * `sum=sha384`: sha384 checksum
 * `sum=sha512`: sha256 checksum
-* `ownerID`: file owner ID (unix-only)
 * `creation=date`: date of file creation (yyyy-mm-dd)
 * `creation=hour`: hour of file creation (hh:mm:ss)
 * `lastChange=date`: date of the last modification to the file (yyyy-mm-dd)
