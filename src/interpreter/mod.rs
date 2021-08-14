@@ -6,7 +6,6 @@ mod conditionals;
 mod cycles;
 mod exceptions;
 mod functions;
-mod interpreter;
 mod operators;
 mod utils;
 mod variables;
@@ -14,7 +13,6 @@ mod variables;
 use conditionals::Conditionals;
 use cycles::Cycles;
 use futures_util::{pin_mut, stream::StreamExt};
-use interpreter::Interpreter;
 use utils::{path, Str};
 
 type AST = super::parser::ast::AST;
@@ -28,6 +26,14 @@ pub async fn run(ast: AST, directory: PathBuf, recursive: bool) {
     // start interpreter
     __voila__.exec().await;
     println_on_debug!("Interpreter ended");
+}
+
+#[derive(Clone)]
+pub struct Interpreter {
+    __directory__: PathBuf,
+    __recursive__: bool,
+    __ast__: AST,
+    __file__: String,
 }
 
 impl Interpreter {

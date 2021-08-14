@@ -7,12 +7,13 @@ use std::fs;
 use walkdir::WalkDir;
 
 pub trait Path {
-    fn exist(&self, input: &String) -> bool;
-    fn absolutize(&self, input: &String) -> String;
-    fn is_file(&self, input: &String) -> Result<bool, ()>;
+    fn exist(&self, input: &str) -> bool;
+    fn absolutize(&self, input: &str) -> String;
+    fn is_file(&self, input: &str) -> Result<bool, ()>;
 }
 
 // the compiler gets angry if I try to return that inside an impl of a trait
+#[allow(clippy::needless_return)]
 pub fn file_generator(interpreter: super::super::Interpreter) -> impl Stream<Item = String> {
     // without this when the directory is invalid
     // Voila panics, I prefer to handle the error

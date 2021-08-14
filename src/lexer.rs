@@ -4,11 +4,11 @@ use super::println_on_debug;
 use logos::Logos;
 use std::fmt;
 
-pub fn lex(source: &String) -> Vec<Token> {
+pub fn lex(source: &str) -> Vec<Token> {
     println_on_debug!("Lexer started");
 
     // tokenize source
-    let mut tokens = Tokens::lexer(&source);
+    let mut tokens = Tokens::lexer(source);
 
     // empty vector which will contain the struct with the tokens
     let mut parsable_tokens: Vec<Token> = vec![];
@@ -17,7 +17,7 @@ pub fn lex(source: &String) -> Vec<Token> {
     // the tokens easier and implement our own display formatting
     while let Some(t_type) = tokens.next() {
         // prepare token values
-        let mut t_value = format!("{}", tokens.slice());
+        let mut t_value = tokens.slice().to_string();
 
         // remove unnecessary symbols on some Literals
         match t_type {
@@ -110,10 +110,10 @@ pub struct Token {
 // it is easier to create tokens like this, isn't it?
 impl Token {
     fn new(token: String, value: String) -> Self {
-        return Self {
+        Self {
             tok_type: token,
             content: value,
-        };
+        }
     }
 }
 

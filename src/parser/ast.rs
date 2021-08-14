@@ -91,8 +91,8 @@ impl Literal {
 }
 
 impl CondOperator {
-    pub fn from_name(name: &String) -> Result<Self, ()> {
-        match name.as_str() {
+    pub fn from_name(name: &str) -> Result<Self, ()> {
+        match name {
             "Equal" => Ok(CondOperator::Eq),
             "NEqual" => Ok(CondOperator::Ne),
             "GreaterT" => Ok(CondOperator::Gt),
@@ -107,8 +107,8 @@ impl CondOperator {
 }
 
 impl CondRelationship {
-    pub fn from_name(name: &String) -> Result<Option<Self>, ()> {
-        match name.as_str() {
+    pub fn from_name(name: &str) -> Result<Option<Self>, ()> {
+        match name {
             "And" => Ok(Some(CondRelationship::And)),
             "Any" => Ok(Some(CondRelationship::Any)),
             "Lbrace" => Ok(None),

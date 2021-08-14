@@ -3,7 +3,6 @@ mod conditionals;
 mod cycles;
 mod exceptions;
 mod operations;
-mod parser;
 
 use super::println_on_debug;
 use ast::*;
@@ -11,7 +10,6 @@ use conditionals::Conditionals;
 use cycles::Cycles;
 use exceptions::Exceptions;
 use operations::Operations;
-use parser::*;
 use std::mem;
 
 type Token = super::lexer::Token;
@@ -61,10 +59,31 @@ pub fn parse(tokens: Vec<super::lexer::Token>) -> AST {
     abstract_syntax_tree
 }
 
+pub struct Parser {
+    // basic stuff
+    pub tokens: Tokens,
+    pub position: usize,
+
+    // conditionals' stuff
+    pub val1: Option<Literal>,
+    pub oper: Option<CondOperator>,
+    pub val2: Option<Literal>,
+    pub rela: Option<CondRelationship>,
+
+    // cycles stuff
+    pub cycles: Vec<Cycle>,
+    pub raw_cycles: Vec<Vec<Token>>,
+    pub current_cycle_funcs: Vec<Function>,
+    pub current_function: Option<String>,
+    pub current_function_args: Vec<Vec<Literal>>,
+    pub parsing_args: bool,
+}
+
+
 impl Parser {
     pub fn new(tokens: Tokens) -> Self {
         Self {
-            tokens: tokens,
+            tokens,
             position: 0usize,
 
             val1: None,

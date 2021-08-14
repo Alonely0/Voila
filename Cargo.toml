@@ -3,7 +3,7 @@ cargo-features = ["edition2021"]
 [package]
 name = "voila"
 description = "A tool for doing complex operations to files and directories."
-author = "Guillem Jara <4lon3ly0@tutanota.com>"
+authors = ["Guillem Jara <4lon3ly0@tutanota.com>"]
 license = "MIT"
 readme = "README.md"
 documentation = "https://github.com/Alonely0/voila/wiki"

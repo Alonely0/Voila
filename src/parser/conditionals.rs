@@ -23,7 +23,7 @@ impl Conditionals for super::Parser {
             let last_token: &Token = &self.tokens[i - (i != 0usize) as usize];
 
             // this way we know whenever a value has been already parsed
-            if let None = self.val1 {
+            if self.val1.is_none() {
                 println_on_debug!("  parsing val1, token {token}, next token {next_token}");
 
                 // convert it to a literal, if was not converted successfully,
@@ -41,7 +41,7 @@ impl Conditionals for super::Parser {
                     },
                     _ => Some(literal_val1.unwrap()),
                 };
-            } else if let None = self.oper {
+            } else if self.oper.is_none() {
                 println_on_debug!("  parsing oper, token {token}, next token {next_token}");
 
                 // get sure the correct operator is being used
@@ -71,7 +71,7 @@ impl Conditionals for super::Parser {
                         Some(op.unwrap())
                     },
                 }
-            } else if let None = self.val2 {
+            } else if self.val2.is_none() {
                 println_on_debug!("  parsing val2, token {token}, next token {next_token}");
 
                 // convert it to a literal, if was not converted successfully,
@@ -89,7 +89,7 @@ impl Conditionals for super::Parser {
                     },
                     _ => Some(literal_val2.unwrap()),
                 };
-            } else if let None = self.rela {
+            } else if self.rela.is_none() {
                 println_on_debug!("  parsing rela, token {token}, next token {next_token}");
 
                 // if error, exit, else, continue. simple
@@ -129,7 +129,7 @@ impl Conditionals for super::Parser {
                 self.raise_parse_error("EXPECTED VALUE", String::from("Found nothing"));
             }),
             next_conditional_relationship: self.rela.clone(),
-            position: self.position.clone(),
+            position: self.position,
         }
     }
 

@@ -24,13 +24,13 @@ pub trait Functions {
     fn supervec_literals_to_args(&self, supervec: Vec<Vec<Literal>>) -> Args;
 
     // Functions definitions
-    fn r#print(&self, args: &Args);
-    fn r#create(&self, args: &Args);
-    fn r#mkdir(&self, args: &Args);
-    fn r#delete(&self, args: &Args);
-    fn r#move(&self, args: &Args);
-    fn r#copy(&self, args: &Args);
-    fn r#shell(&self, args: &Args);
+    fn r#print(&self, args: Args);
+    fn r#create(&self, args: Args);
+    fn r#mkdir(&self, args: Args);
+    fn r#delete(&self, args: Args);
+    fn r#move(&self, args: Args);
+    fn r#copy(&self, args: Args);
+    fn r#shell(&self, args: Args);
 }
 
 impl Functions for super::Interpreter {
@@ -58,7 +58,7 @@ impl Functions for super::Interpreter {
     }
 
     // Functions definitions
-    fn r#print(&self, args: &Args) {
+    fn r#print(&self, args: Args) {
         // mitigate printing bottleneck by locking the stdout
         let stdout = io::stdout();
         let mut handle = stdout.lock();
@@ -66,37 +66,33 @@ impl Functions for super::Interpreter {
         handle.flush().unwrap();
     }
 
-    fn r#create(&self, args: &Args) {
+    fn r#create(&self, args: Args) {
         if args.len() != 2 {
             self.raise_error(
                 "UNEXPECTED QUANTITY ARGUMENTS",
                 "create() function is expected to take only 2 args, the file and the content"
                     .to_string(),
             );
-        } else {
-            match fs::write(self.trim_spaces(&args[0]), self.trim_spaces(&args[1])) {
-                Err(err) => self.raise_error(
-                    "ERROR CREATING FILE",
-                    format!("echo {} > {}': {err}", args[1], args[0]),
-                ),
-                _ => {},
-            }
+        } else if let Err(err) = fs::write(self.trim_spaces(&args[0]), self.trim_spaces(&args[1])) {
+            self.raise_error(
+                "ERROR CREATING FILE",
+                format!("echo {} > {}': {err}", args[1], args[0]),
+            );
         }
     }
 
-    fn r#mkdir(&self, args: &Args) {
+    fn r#mkdir(&self, args: Args) {
         for arg in args {
-            match fs::create_dir_all(self.trim_spaces(&arg)) {
-                Err(err) => self.raise_error(
+            if let Err(err) = fs::create_dir_all(self.trim_spaces(&arg)) {
+                self.raise_error(
                     "ERROR WHILE CREATING DIRECTORY",
                     format!("An error occurred:\n'mkdir --parent {arg}': {err}"),
-                ),
-                _ => {},
+                );
             };
         }
     }
 
-    fn r#delete(&self, args: &Args) {
+    fn r#delete(&self, args: Args) {
         for arg in args {
             let is_file: Result<bool, ()> = self.is_file(&self.trim_spaces(&arg));
 
@@ -108,7 +104,7 @@ impl Functions for super::Interpreter {
             // doing a hashmap of stuff deleted and then a checker,
             // enough overhead & bottlenecks with the async hell
             // of the cycles & the interpreter
-            if let Ok(_) = is_file {
+            if is_file.is_ok() {
                 // there is not a way of deleting something without
                 // without caring if its a directory or a file, so
                 // we have to get its type and call whatever needed
@@ -119,27 +115,25 @@ impl Functions for super::Interpreter {
                             format!("An error occurred:\n'rm -f {arg}': {err}"),
                         );
                     };
-                } else {
-                    if let Err(err) = fs::remove_dir_all(self.trim_spaces(&arg)) {
-                        self.raise_error(
-                            "ERROR WHILE DELETING DIRECTORY",
-                            format!("An error occurred:\n'rm -rf {arg}': {err}"),
-                        );
-                    };
-                }
+                } else if let Err(err) = fs::remove_dir_all(self.trim_spaces(&arg)) {
+                    self.raise_error(
+                        "ERROR WHILE DELETING DIRECTORY",
+                        format!("An error occurred:\n'rm -rf {arg}': {err}"),
+                    );
+                };
             }
         }
     }
 
-    fn r#move(&self, args: &Args) {
+    fn r#move(&self, args: Args) {
         // moving is literally copying and then deleting,
         // so i prefer to call their respective functions
         // instead of mashing them up
-        self.r#copy(&args);
-        self.r#delete(&vec![args[0].clone()]);
+        self.r#copy(args.clone());
+        self.r#delete(vec![args[0].clone()]);
     }
 
-    fn r#copy(&self, args: &Args) {
+    fn r#copy(&self, args: Args) {
         // arguments must be exactly 2
         if args.len() != 2 {
             self.raise_error(
@@ -167,22 +161,23 @@ impl Functions for super::Interpreter {
                             format!("An error occurred:\n'cp {} {}': {err}", args[0], args[1]),
                         );
                     };
-                } else {
-                    if let Err(err) = dir::copy(
-                        self.trim_spaces(&args[0]),
-                        self.trim_spaces(&args[1]),
-                        &dir::CopyOptions::new(),
-                    ) {
-                        self.raise_error(
-                            "ERROR WHILE COPYING DIR",
-                            format!("An error occurred:\n'cp -r --parents --copy-contents {} {}': {err}", args[0], args[1]),
-                        );
-                    };
-                }
+                } else if let Err(err) = dir::copy(
+                    self.trim_spaces(&args[0]),
+                    self.trim_spaces(&args[1]),
+                    &dir::CopyOptions::new(),
+                ) {
+                    self.raise_error(
+                        "ERROR WHILE COPYING DIR",
+                        format!(
+                            "An error occurred:\n'cp -r --parents --copy-contents {} {}': {err}",
+                            args[0], args[1]
+                        ),
+                    );
+                };
             }
         }
     }
-    fn r#shell(&self, args: &Args) {
+    fn r#shell(&self, args: Args) {
         for arg in args {
             // Determine operating system and launch associated process
             #[cfg(windows)]

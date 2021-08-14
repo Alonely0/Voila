@@ -11,8 +11,8 @@ impl Cycles for super::Parser {
     // i do not remember well what does this, but works
     fn push_current_cycle(&mut self, tokens_index_list: &mut Vec<usize>) {
         let mut cache_vec: Vec<Token> = vec![];
-        for i in 0..tokens_index_list.len() {
-            cache_vec.push(self.tokens[tokens_index_list[i]].clone());
+        for index in tokens_index_list {
+            cache_vec.push(self.tokens[*index].clone());
         }
         self.raw_cycles.push(cache_vec);
     }
@@ -100,15 +100,13 @@ impl Cycles for super::Parser {
                                     token.content
                                 ),
                             );
+                        } else if self.current_function.is_some() {
+                            self.parsing_args = true;
                         } else {
-                            if let Some(_) = self.current_function {
-                                self.parsing_args = true;
-                            } else {
-                                self.raise_parse_error(
-                                    "UNEXPECTED TOKEN",
-                                    format!("Expected a function, found {}", token.content),
-                                );
-                            }
+                            self.raise_parse_error(
+                                "UNEXPECTED TOKEN",
+                                format!("Expected a function, found {}", token.content),
+                            );
                         }
                     },
 
@@ -118,7 +116,7 @@ impl Cycles for super::Parser {
                     // now function is unset
                     "Rparen" => {
                         if_chain! {
-                            if let Some(_) = self.current_function;
+                            if self.current_function.is_some();
                             if self.parsing_args;
                             then {
                                 self.parsing_args = false;
@@ -164,7 +162,7 @@ impl Cycles for super::Parser {
                                 .current_function_args
                                 .last()
                                 .cloned()
-                                .unwrap_or_else(|| vec![]);
+                                .unwrap_or_else(Vec::new);
 
                             // push the token
                             f_args.push(Literal::from_token(token).unwrap());
@@ -181,7 +179,7 @@ impl Cycles for super::Parser {
                             // change the vector with the new & old arguments with the one in
                             // self.current_function_args
                             mem::swap(&mut f_args, &mut self.current_function_args[len]);
-                        } else if let None = self.current_function {
+                        } else if self.current_function.is_none() {
                             self.raise_parse_error(
                                 "UNEXPECTED TOKEN",
                                 format!("Expected a function, found {}", token.content),
@@ -198,7 +196,7 @@ impl Cycles for super::Parser {
                     // was a function behind? great
                     // are we parsing arguments? great
                     "Comma" => {
-                        if let None = self.current_function {
+                        if self.current_function.is_none() {
                             self.raise_parse_error(
                                 "UNEXPECTED TOKEN",
                                 format!("Expected a function, found {}", token.content),
@@ -214,7 +212,7 @@ impl Cycles for super::Parser {
                                 _ => {
                                     self.raise_parse_error(
                                         "UNEXPECTED TOKEN",
-                                        format!("',' was not expected"),
+                                        "',' was not expected".to_string(),
                                     );
                                 },
                             }

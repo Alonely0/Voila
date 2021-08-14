@@ -18,7 +18,7 @@ pub mod string;
 pub mod sum;
 
 impl path::Path for super::Interpreter {
-    fn exist(&self, input: &String) -> bool {
+    fn exist(&self, input: &str) -> bool {
         // absolutize path, just to be sure nothing
         // weird happens
         let path = self.absolutize(input);
@@ -28,7 +28,7 @@ impl path::Path for super::Interpreter {
         Path::new(&path).exists()
     }
 
-    fn absolutize(&self, input: &String) -> String {
+    fn absolutize(&self, input: &str) -> String {
         // ge the absolute path
         let p = Path::new(&input).absolutize().unwrap();
 
@@ -40,7 +40,7 @@ impl path::Path for super::Interpreter {
         path.to_string()
     }
 
-    fn is_file(&self, input: &String) -> Result<bool, ()> {
+    fn is_file(&self, input: &str) -> Result<bool, ()> {
         // maybe file was delete in previous cycles.
         // if the path just was wrong, its not my fault,
         // user's fault. just re-run voila but reading what
@@ -67,13 +67,13 @@ impl regexp::RegExp for super::Interpreter {
 }
 
 impl Str for super::Interpreter {
-    fn trim_spaces(&self, str: &String) -> String {
-        str.trim().to_string()
+    fn trim_spaces(&self, string: &str) -> String {
+        string.trim().to_string()
     }
 }
 
 impl Sum for super::Interpreter {
-    fn get_sum_of(&self, file: &String, sum: SumTypes) -> String {
+    fn get_sum_of(&self, file: &str, sum: SumTypes) -> String {
         let bytes = self.read_bytes_of_file(file);
         match sum {
             SumTypes::Md5 => format!("{:x}", md5::compute(bytes)),
@@ -109,7 +109,7 @@ impl Sum for super::Interpreter {
             },
         }
     }
-    fn read_bytes_of_file(&self, path: &String) -> Vec<u8> {
+    fn read_bytes_of_file(&self, path: &str) -> Vec<u8> {
         let mut buffer = Vec::new();
         let file = File::open(path);
         if let Ok(f) = file {
