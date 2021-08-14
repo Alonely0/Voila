@@ -219,7 +219,7 @@ impl Functions for super::Interpreter {
             {
                 self.raise_error(
                     "UNSUPPORTED PLATFORM",
-                    "Voila is only supported on Windows & Unix-like systems".to_string(),
+                    "Voila is only supported on Windows & Unix-like systems. That is mostly because this function and some variables like `ownerID`.\n                         I won't be limiting you to just use Voila on those OSs, but you will be using it at your own risk.\n                         I'm not planning to support more OSs in the short term, but any contribution is welcome!".to_string(),
                 )
             }
         }
