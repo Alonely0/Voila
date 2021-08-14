@@ -45,9 +45,9 @@ pub fn parse(tokens: Vec<super::lexer::Token>) -> AST {
 
     // parse operations
     let get_cycles = |parser: &mut Parser| -> Vec<Cycle> {
-        let cycles: Vec<Cycle> = parser.parse_operations();
+        let cycles: &Vec<Cycle> = parser.parse_operations();
         println_on_debug!("  Cycles {:#?}", &cycles);
-        cycles
+        cycles.to_owned()
     };
 
     let cycles: Vec<Cycle> = get_cycles(&mut parser);
