@@ -196,7 +196,7 @@ impl Functions for super::Interpreter {
                 {
                     self.raise_error(
                         "ERROR WHILE EXECUTING SHELL",
-                        format!("An error occurred:\n'powershell -Command {}': {err}", arg),
+                        format!("An error occurred:\n'powershell -Command {arg}': {err}"),
                     );
                 }
             }
@@ -211,7 +211,7 @@ impl Functions for super::Interpreter {
                 {
                     self.raise_error(
                         "ERROR WHILE EXECUTING SHELL",
-                        format!("An error occurred:\n'sh -c {}': {err}", arg),
+                        format!("An error occurred:\n'sh -c {arg}': {err}"),
                     );
                 }
             }
