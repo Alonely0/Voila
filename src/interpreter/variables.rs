@@ -1,7 +1,9 @@
 extern crate chrono;
 
+use if_chain::if_chain;
 use std::ffi::OsString;
 use std::fs;
+use std::io::prelude::*;
 #[cfg(unix)]
 use std::os::unix::fs::MetadataExt;
 use std::path;
@@ -138,6 +140,27 @@ impl Variables for super::Interpreter {
                 Ok(Literal {
                     kind: LiteralKind::Str,
                     content: format!("{}", metadata.permissions().readonly()),
+                })
+            },
+            "elf" => {
+                // create an empty non-growable buffer
+                let mut buffer = [0u8; 4];
+
+                Ok(Literal {
+                    kind: LiteralKind::Str,
+                    content: if_chain! {
+                        if let Ok(mut f) = fs::File::open(&self.__file__);
+                        if let Ok(_) = f.read(&mut buffer);
+                        then {
+                            match buffer {
+                                // thats the byte sequence ELF files must start with
+                                [0x7f, b'E', b'L', b'F'] => "true".to_string(),
+                                _ => "false".to_string(),
+                            }
+                        } else {
+                            format!("error reading file {}", &self.__file__)
+                        }
+                    },
                 })
             },
             "sum=md5" => Ok(Literal {
