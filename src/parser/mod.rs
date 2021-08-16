@@ -79,7 +79,6 @@ struct Parser {
     parsing_args: bool,
 }
 
-
 impl Parser {
     fn new(tokens: Tokens) -> Self {
         Self {
