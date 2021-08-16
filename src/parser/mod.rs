@@ -17,44 +17,11 @@ type Tokens = Vec<Token>;
 
 pub fn parse(tokens: Vec<super::lexer::Token>) -> AST {
     // create parser object
-    let mut parser: Parser = Parser::new(tokens);
+    let parser: Parser = Parser::new(tokens);
     println_on_debug!("Parser started");
 
-    // parse conditionals
-    let get_conditionals = |parser: &mut Parser| -> Vec<Conditional> {
-        let mut conditionals: Vec<Conditional> = vec![];
-        loop {
-            // get conditional and send it to the vector
-            let conditional: Conditional = parser.parse_next_conditional();
-            conditionals.push(conditional.clone());
-            // conditionals will stop when the condr of the next is null,
-            // so then we stop
-            match conditional.next_conditional_relationship {
-                None => break,
-                _ => continue,
-            }
-        }
+    let abstract_syntax_tree = parser.exec();
 
-        println_on_debug!("  Conditionals {:#?}", &conditionals);
-        conditionals
-    };
-
-    let conditionals: Vec<Conditional> = get_conditionals(&mut parser);
-
-    // parse operations
-    let get_cycles = |parser: &mut Parser| -> Vec<Cycle> {
-        let cycles: &Vec<Cycle> = parser.parse_operations();
-        println_on_debug!("  Cycles {:#?}", &cycles);
-        cycles.to_owned()
-    };
-
-    let cycles: Vec<Cycle> = get_cycles(&mut parser);
-    let abstract_syntax_tree = AST {
-        conditionals,
-        cycles,
-    };
-
-    println_on_debug!("  {:#?}", &abstract_syntax_tree);
     println_on_debug!("Parser ended\n");
     abstract_syntax_tree
 }
@@ -97,5 +64,22 @@ impl Parser {
             current_function_args: vec![],
             parsing_args: false,
         }
+    }
+
+    fn exec(mut self) -> AST {
+        // parse conditionals
+        let conditionals: Vec<Conditional> = self.get_conditionals();
+
+        // parse cycles
+        let cycles: Vec<Cycle> = self.get_cycles();
+
+        // get AST
+        let abstract_syntax_tree = AST {
+            conditionals,
+            cycles,
+        };
+
+        println_on_debug!("  {:#?}", &abstract_syntax_tree);
+        abstract_syntax_tree
     }
 }

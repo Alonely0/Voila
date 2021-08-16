@@ -2,12 +2,19 @@ use super::*;
 use if_chain::if_chain;
 
 pub trait Cycles {
+    fn get_cycles(&mut self) -> Vec<Cycle>;
     fn push_current_cycle(&mut self, tokens_index_list: &mut Vec<usize>);
     fn parse_raw_cycles(&mut self);
     fn parse_cycles(&mut self);
 }
 
 impl Cycles for super::Parser {
+    fn get_cycles(&mut self) -> Vec<Cycle> {
+        let cycles: &Vec<Cycle> = self.parse_operations();
+        println_on_debug!("  Cycles {:#?}", &cycles);
+        cycles.to_owned()
+    }
+
     // i do not remember well what does this, but works
     fn push_current_cycle(&mut self, tokens_index_list: &mut Vec<usize>) {
         let mut cache_vec: Vec<Token> = vec![];

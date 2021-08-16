@@ -1,11 +1,28 @@
 use super::*;
 
 pub trait Conditionals {
+    fn get_conditionals(&mut self) -> Vec<Conditional>;
     fn parse_next_conditional(&mut self) -> super::Conditional;
     fn reset_conditionals(&mut self);
 }
 
 impl Conditionals for super::Parser {
+    fn get_conditionals(&mut self) -> Vec<Conditional> {
+        let mut conditionals: Vec<Conditional> = vec![];
+        loop {
+            // get conditional and send it to the vector
+            let conditional: Conditional = self.parse_next_conditional();
+            conditionals.push(conditional.clone());
+            // conditionals will stop when the condr of the next is null,
+            // so then we stop
+            if conditional.next_conditional_relationship.is_none() {
+                break;
+            }
+        }
+
+        println_on_debug!("  Conditionals {:#?}", &conditionals);
+        conditionals
+    }
     fn parse_next_conditional(&mut self) -> Conditional {
         // We reset from previous execution, if we do not do it, the next
         // for-loop will not know what to do
@@ -132,7 +149,6 @@ impl Conditionals for super::Parser {
             position: self.position,
         }
     }
-
     // this way the conditional's parser knows whenever it has to parse a new conditional
     fn reset_conditionals(&mut self) {
         self.val1 = None;
