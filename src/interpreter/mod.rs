@@ -47,7 +47,7 @@ impl Interpreter {
         }
     }
 
-    async fn exec(&mut self) {
+    async fn exec(mut self) {
         for i in 0..self.__ast__.cycles.len() {
             if i == 0 && self.__ast__.cycles.len() <= 1 {}
             // load files
