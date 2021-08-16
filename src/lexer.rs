@@ -54,7 +54,7 @@ pub enum Tokens {
     #[regex(r#"( )*(print)( )*"#)]
     #[regex(r#"( )*(move)( )*"#)]
     #[regex(r#"( )*(copy)( )*"#)]
-    #[regex(r#"( )*(rename)( )*"#)]
+    #[regex(r#"( )*(gz[cd])( )*"#)]
     #[regex(r#"( )*(shell)( )*"#)]
     Func,
     #[token("==")]

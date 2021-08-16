@@ -47,3 +47,5 @@ futures-util = "0.3.16"
 futures-core = "0.3.16"
 chrono = "0.4.19"
 if_chain = "1.0.1"
+gzp = { version = "0.4.0", features = ["pargz_default"] }
+flate2 = "1.0.20"

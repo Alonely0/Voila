@@ -65,6 +65,8 @@ pub enum Func {
     PRINT,
     MOVE,
     COPY,
+    GZC,
+    GZD,
     SHELL,
 }
 
@@ -126,6 +128,8 @@ impl Func {
             "print" => Ok(Func::PRINT),
             "move" => Ok(Func::MOVE),
             "copy" => Ok(Func::COPY),
+            "gzc" => Ok(Func::GZC),
+            "gzd" => Ok(Func::GZD),
             "shell" => Ok(Func::SHELL),
             _ => Err(()),
         }

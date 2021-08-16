@@ -61,6 +61,8 @@ These are the available operations/functions:
 * `delete`: deletes file/directory ⚠️
 * `move`: moves a file or a folder/directory ⚠️
 * `copy`: copies a file or a folder/directory ⚠️
+* `gzc`: compress file using gzip. first argument is the file to compress, the second is the file to save the compressed file
+* `gzd`: decompress file using gzip. first argument is the file to compress, the second is be file to save the compressed file
 * `shell`: gives a command to the Bourne Shell (`sh`) in Unix systems (like Linux or macOS), and a command to PowerShell (`powershell`) in Windows systems. Exists for doing things Voila functions can't, for example, send a dbus message. ⚠️
 
 **⚠️ WARNING: If you use functions that access and/or modify the same file/directory in the same cycle it could cause undefined behavior because the file would be accessed and overwritten at the same time. For avoiding that, consider splitting those functions into different cycles. A workaround is being discussed in [#5](https://github.com/Alonely0/Voila/issues/5)**

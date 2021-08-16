@@ -1,14 +1,16 @@
 use std::fs;
 use std::process;
 
-use fs_extra::dir;
-
 use super::exceptions::Exceptions;
 use super::utils::path::Path;
+use super::utils::Sum;
 use super::variables::Variables;
 use super::Literal;
 use super::Str;
-use std::io::{self, Write};
+use flate2::bufread::MultiGzDecoder;
+use fs_extra::dir;
+use gzp::pargz::ParGz;
+use std::io::{self, prelude::*, Write};
 
 type Args = Vec<String>;
 
@@ -30,6 +32,8 @@ pub trait Functions {
     fn r#delete(&self, args: Args);
     fn r#move(&self, args: Args);
     fn r#copy(&self, args: Args);
+    fn r#gzc(&self, args: Args);
+    fn r#gzd(&self, args: Args);
     fn r#shell(&self, args: Args);
 }
 
@@ -176,6 +180,56 @@ impl Functions for super::Interpreter {
                 };
             }
         }
+    }
+    fn r#gzc(&self, args: Args) {
+        // check arguments
+        if args.len() != 2 {
+            self.raise_error(
+                "NOT ENOUGH ARGUMENTS",
+                format!("Expected 2 arguments, found {}", args.len()),
+            )
+        }
+
+        // get bytes of file to compress
+        // and store them in a buffer
+        let content = self.read_bytes_of_file(&args[0]);
+
+        // init a compressed bytes writer
+        // with destination to the file
+        let mut compressor = ParGz::builder(fs::File::create(&args[1]).unwrap()).build();
+
+        // send bytes to compressor and write them
+        compressor.write_all(&content).unwrap();
+
+        // drop safely compressor
+        compressor.finish().unwrap();
+    }
+    fn gzd(&self, args: Args) {
+        // check arguments
+        if args.len() != 2 {
+            self.raise_error(
+                "NOT ENOUGH ARGUMENTS",
+                format!("Expected 2 arguments, found {}", args.len()),
+            )
+        }
+
+        // get compressed file
+        let compressed_file = fs::File::open(&args[0]).unwrap();
+
+        // init a decompressor over
+        // a readbuffer of the file
+        let mut decompressor = MultiGzDecoder::new(io::BufReader::new(compressed_file));
+
+        // init a buffer for
+        // decompressed bytes
+        let mut buffer: Vec<u8> = Vec::new();
+
+        // dump decompressed bytes
+        // into the buffer
+        decompressor.read_to_end(&mut buffer).unwrap();
+
+        // dump buffer into the file
+        fs::write(&args[1], &buffer).unwrap();
     }
     fn r#shell(&self, args: Args) {
         for arg in args {

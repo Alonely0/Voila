@@ -36,6 +36,8 @@ impl Cycles for super::Interpreter {
             Func::PRINT => self.r#print(args),
             Func::MOVE => self.r#move(args),
             Func::COPY => self.r#copy(args),
+            Func::GZC => self.r#gzc(args),
+            Func::GZD => self.r#gzd(args),
             Func::SHELL => self.r#shell(args),
         }
     }
