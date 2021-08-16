@@ -8,7 +8,7 @@ use super::{println_on_debug, Literal, Str};
 
 pub trait Conditionals {
     fn eval_conditionals(&mut self) -> bool;
-    fn eval_relationships(&self, cond: &String) -> bool;
+    fn eval_relationships(&self, cond: &str) -> bool;
 }
 
 impl Conditionals for super::Interpreter {
@@ -74,9 +74,9 @@ impl Conditionals for super::Interpreter {
         conditional_result
     }
 
-    fn eval_relationships(&self, cond: &String) -> bool {
+    fn eval_relationships(&self, cond: &str) -> bool {
         // im not doing another lexer & another parser just for evaluating relationships,
         // and "evalexpr" library is pretty nice and gets the job done, so I wont change it
-        eval(&cond).unwrap().as_boolean().unwrap()
+        eval(cond).unwrap().as_boolean().unwrap()
     }
 }

@@ -10,8 +10,6 @@ use std::path;
 use std::path::PathBuf;
 use std::time::SystemTime;
 
-use byte_unit;
-
 use super::utils::{path::Path, Str, Sum, SumTypes};
 use super::{Literal, LiteralKind};
 
@@ -34,7 +32,7 @@ impl Variables for super::Interpreter {
                 let name = _name.to_str().unwrap().to_string();
                 Ok(Literal {
                     kind: LiteralKind::Str,
-                    content: format!("{}", name),
+                    content: name,
                 })
             },
             "parent" => {
@@ -127,16 +125,21 @@ impl Variables for super::Interpreter {
             },
             "empty" => {
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
-                // 1 instead of 0 because sometimes a file is empty but returns 1
-                let empty = if metadata.len() <= 1 { true } else { false };
 
                 Ok(Literal {
                     kind: LiteralKind::Str,
-                    content: format!("{}", empty),
+                    content: if metadata.len() <= 1
+                    // 1 instead of 0 because sometimes a file is empty but returns 1
+                    {
+                        "true".to_string()
+                    } else {
+                        "false".to_string()
+                    },
                 })
             },
             "readonly" => {
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
+
                 Ok(Literal {
                     kind: LiteralKind::Str,
                     content: format!("{}", metadata.permissions().readonly()),

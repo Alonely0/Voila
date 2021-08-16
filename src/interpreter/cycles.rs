@@ -30,13 +30,13 @@ impl Cycles for super::Interpreter {
         let args: Vec<String> = self.supervec_literals_to_args(operation.args.to_owned());
         println_on_debug!("    Args {:#?}", &args);
         match operation.function {
-            Func::DELETE => self.r#delete(&args),
-            Func::CREATE => self.r#create(&args),
-            Func::MKDIR => self.r#mkdir(&args),
-            Func::PRINT => self.r#print(&args),
-            Func::MOVE => self.r#move(&args),
-            Func::COPY => self.r#copy(&args),
-            Func::SHELL => self.r#shell(&args),
+            Func::DELETE => self.r#delete(args),
+            Func::CREATE => self.r#create(args),
+            Func::MKDIR => self.r#mkdir(args),
+            Func::PRINT => self.r#print(args),
+            Func::MOVE => self.r#move(args),
+            Func::COPY => self.r#copy(args),
+            Func::SHELL => self.r#shell(args),
         }
     }
 }
