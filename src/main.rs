@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)] // unsafe code makes ferris get nervous
 #![feature(format_args_capture)]
 #![feature(decl_macro)]
+#![feature(box_syntax)]
 #![allow(clippy::upper_case_acronyms)]
 
 use futures::executor::block_on;
