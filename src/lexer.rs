@@ -20,7 +20,6 @@ pub fn lex(source: &str) -> Vec<Token> {
         let mut t_type_str = format!("{:?}", t_type);
         // prepare token values
         let mut t_value: TokContent = TokContent::new_string(tokens.slice().to_string());
-        println!("{}: {}", t_type_str, t_value);
         // Get specific val on some Literals
         match &t_type {
             Tokens::Var(ref val) => {
