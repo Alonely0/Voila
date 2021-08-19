@@ -42,7 +42,7 @@ impl Cycles for super::Parser {
                         self.funcs.clear();
                     },
                     _ => {
-                        match *&self.tokens[0].tok_type.as_str() {
+                        match self.tokens[0].tok_type.as_str() {
                             "Func" => self
                                 .funcs
                                 .push(self.tokens.remove(0).content.function.unwrap()),

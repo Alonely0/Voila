@@ -36,7 +36,6 @@ pub fn lex(source: &str) -> Vec<Token> {
             },
             Tokens::Error => {
                 t_type_str = String::from("Txt");
-                t_value = t_value;
             },
             _ => {},
         }
