@@ -6,13 +6,13 @@ pub struct AST {
     pub cycles: Vec<Cycle>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Literal {
     pub kind: LiteralKind,
     pub content: String,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LiteralKind {
     Str, //* String
     Var, //* Variable
@@ -51,13 +51,13 @@ pub struct Cycle {
     pub operations: Vec<Function>, //* Example: delete(...), print(...)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Function {
     pub function: Func,          //* Example: delete
     pub args: Vec<Vec<Literal>>, //* Example: @path, @parent/../copy/@name
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Func {
     DELETE,
     CREATE,
@@ -74,20 +74,20 @@ impl Literal {
     pub fn from_token(token: &super::super::lexer::Token) -> Result<Self, String> {
         // Create a Literal & return it
         let content = token.content.to_owned();
-        match token.tok_type.as_str() {
+        match token.tok_type.as_str().split('(').collect::<Vec<&str>>()[0] {
             "Txt" => Ok(Self {
-                content,
+                content: content.string.unwrap(),
                 kind: LiteralKind::Str,
             }),
             "Var" => Ok(Self {
-                content,
+                content: content.string.unwrap(),
                 kind: LiteralKind::Var,
             }),
             "Rgx" => Ok(Self {
-                content,
+                content: content.string.unwrap(),
                 kind: LiteralKind::Rgx,
             }),
-            _ => Err(content),
+            _ => Err(content.string.unwrap()),
         }
     }
 }
