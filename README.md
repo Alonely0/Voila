@@ -35,6 +35,7 @@ These are the available variables:
 * `empty`: true if the file size is less than 1 byte (else false)
 * `readonly`: true if the file is ro (else false)
 * `elf`: true if the file is compliant to the Executable & Linkable Format (else false)
+* `txt`: true if the file is a valid text file (else false)
 * `size=tb`: file size in terabytes (2 decimals)
 * `size=gb`: file size in gigabytes (2 decimals)
 * `size=mb`: file size in megabytes (2 decimals)

@@ -166,6 +166,27 @@ impl Variables for super::Interpreter {
                     },
                 })
             },
+            "txt" => {
+                // create a growable buffer
+                let mut buffer = vec![0u8];
+
+                Ok(Literal {
+                    kind: LiteralKind::Str,
+                    content: if_chain! {
+                        if let Ok(mut f) = fs::File::open(&self.__file__);
+                        if let Ok(_) = f.read_to_end(&mut buffer);
+                        then {
+                            match buffer[buffer.len() - 1] {
+                                // CR or LF
+                                b'\r' | b'\n' => "true".to_string(),
+                                _ => "false".to_string(),
+                            }
+                        } else {
+                            format!("error reading file {}", &self.__file__)
+                        }
+                    },
+                })
+            },
             "sum=md5" => Ok(Literal {
                 kind: LiteralKind::Str,
                 content: self.get_sum_of(&self.__file__, SumTypes::Md5),
