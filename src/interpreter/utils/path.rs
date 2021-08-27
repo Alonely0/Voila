@@ -1,7 +1,6 @@
 use super::Exceptions;
 use async_stream::stream;
 use futures_core::stream::Stream;
-use if_chain::if_chain;
 use path_absolutize::*;
 use std::fs;
 use walkdir::WalkDir;
@@ -33,14 +32,11 @@ pub fn file_generator(interpreter: super::super::Interpreter) -> impl Stream<Ite
             for e in WalkDir::new(&interpreter.__directory__)
                 .into_iter()
             {
-                if_chain! {
-                    if let Ok(entry) = e;
-                    if let Ok(metadata) = entry.metadata();
-                    if metadata.is_file();
-                    then {
-                        yield entry.path().display().to_string();
-                    } else { continue }
-                }
+                let entry = match e.and_then(|e| e.metadata().map(|m| (e, m))) {
+                    Ok((e, m)) if m.is_file() => e,
+                    _ => continue,
+                };
+                yield entry.path().display().to_string();
             }
             return;
         } else {

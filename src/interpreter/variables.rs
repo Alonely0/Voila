@@ -1,6 +1,5 @@
 extern crate chrono;
 
-use if_chain::if_chain;
 use std::ffi::OsString;
 use std::fs;
 use std::io::prelude::*;
@@ -151,17 +150,15 @@ impl Variables for super::Interpreter {
 
                 Ok(Literal {
                     kind: LiteralKind::Str,
-                    content: if_chain! {
-                        if let Ok(mut f) = fs::File::open(&self.__file__);
-                        if let Ok(_) = f.read(&mut buffer);
-                        then {
-                            match buffer {
-                                // thats the byte sequence ELF files must start with
-                                [0x7f, b'E', b'L', b'F'] => "true".to_string(),
-                                _ => "false".to_string(),
-                            }
-                        } else {
-                            format!("error reading file {}", &self.__file__)
+                    content: if let Err(err) =
+                        fs::File::open(&self.__file__).and_then(|mut f| f.read(&mut buffer))
+                    {
+                        format!("error reading file {}: {}", self.__file__, err)
+                    } else {
+                        match buffer {
+                            // thats the byte sequence ELF files must start with
+                            [0x7f, b'E', b'L', b'F'] => "true".to_string(),
+                            _ => "false".to_string(),
                         }
                     },
                 })
@@ -172,17 +169,15 @@ impl Variables for super::Interpreter {
 
                 Ok(Literal {
                     kind: LiteralKind::Str,
-                    content: if_chain! {
-                        if let Ok(mut f) = fs::File::open(&self.__file__);
-                        if let Ok(_) = f.read_to_end(&mut buffer);
-                        then {
-                            match buffer[buffer.len() - 1] {
-                                // CR or LF
-                                b'\r' | b'\n' => "true".to_string(),
-                                _ => "false".to_string(),
-                            }
-                        } else {
-                            format!("error reading file {}", &self.__file__)
+                    content: if let Err(err) =
+                        fs::File::open(&self.__file__).and_then(|mut f| f.read_to_end(&mut buffer))
+                    {
+                        format!("error reading file {}: {}", self.__file__, err)
+                    } else {
+                        match buffer[buffer.len() - 1] {
+                            // CR or LF
+                            b'\r' | b'\n' => "true".to_string(),
+                            _ => "false".to_string(),
                         }
                     },
                 })
