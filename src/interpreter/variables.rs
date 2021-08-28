@@ -19,6 +19,10 @@ pub trait Variables {
 
 impl Variables for super::Interpreter {
     fn get_var_if_any(&self, var: &super::Literal) -> Result<Literal, String> {
+        // get file metadata,
+        // it'll be useful later
+        let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
+
         // is it a string starting with a @? ok, warn and return it as string
         // no? get the variable
         match var.content.as_str() {
@@ -44,53 +48,27 @@ impl Variables for super::Interpreter {
                     content: self.absolutize(&parent_path.into_os_string().into_string().unwrap()),
                 })
             },
-            "size=tb" => {
-                // get metadata
-                let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
-
-                Ok(Literal {
-                    kind: LiteralKind::Str,
-                    content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::TB)),
-                })
-            },
-            "size=gb" => {
-                // get metadata
-                let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
-
-                Ok(Literal {
-                    kind: LiteralKind::Str,
-                    content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::GB)),
-                })
-            },
-            "size=mb" => {
-                // get metadata
-                let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
-
-                Ok(Literal {
-                    kind: LiteralKind::Str,
-                    content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::MB)),
-                })
-            },
-            "size=kb" => {
-                // get metadata
-                let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
-
-                Ok(Literal {
-                    kind: LiteralKind::Str,
-                    content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::KB)),
-                })
-            },
-            "size=bs" => {
-                let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
-
-                Ok(Literal {
-                    kind: LiteralKind::Str,
-                    content: format!("{}", metadata.len()),
-                })
-            },
+            "size=tb" => Ok(Literal {
+                kind: LiteralKind::Str,
+                content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::TB)),
+            }),
+            "size=gb" => Ok(Literal {
+                kind: LiteralKind::Str,
+                content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::GB)),
+            }),
+            "size=mb" => Ok(Literal {
+                kind: LiteralKind::Str,
+                content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::MB)),
+            }),
+            "size=kb" => Ok(Literal {
+                kind: LiteralKind::Str,
+                content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::KB)),
+            }),
+            "size=bs" => Ok(Literal {
+                kind: LiteralKind::Str,
+                content: format!("{}", metadata.len()),
+            }),
             "empty" => {
-                let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
-
                 Ok(Literal {
                     kind: LiteralKind::Str,
                     content: if metadata.len() <= 1
@@ -102,14 +80,10 @@ impl Variables for super::Interpreter {
                     },
                 })
             },
-            "readonly" => {
-                let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
-
-                Ok(Literal {
-                    kind: LiteralKind::Str,
-                    content: format!("{}", metadata.permissions().readonly()),
-                })
-            },
+            "readonly" => Ok(Literal {
+                kind: LiteralKind::Str,
+                content: format!("{}", metadata.permissions().readonly()),
+            }),
             "elf" => {
                 // create an empty non-growable buffer
                 let mut buffer = [0u8; 4];
@@ -173,23 +147,23 @@ impl Variables for super::Interpreter {
                 content: self.get_sum_of(&self.__file__, SumTypes::Sha512),
             }),
             "ownerID" => {
-                let kind = LiteralKind::Str;
-                // Ensures *nix specific metadata is not included on non-*nix ststems
-                let content = {
-                    #[cfg(unix)]
-                    {
-                        let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
-                        format!("{:?}", metadata.uid())
-                    }
+                Ok(Literal {
+                    kind: LiteralKind::Str,
+                    content: {
+                        // Ensures *nix specific metadata is not included on non-*nix systems
+                        #[cfg(unix)]
+                        {
+                            format!("{}", metadata.uid())
+                        }
 
-                    #[cfg(not(unix))]
-                    format!("ownerID is an Unix-Only variable!")
-                };
-
-                Ok(Literal { kind, content })
+                        #[cfg(not(unix))]
+                        {
+                            format!("ownerID is an Unix-Only variable!")
+                        }
+                    },
+                })
             },
             "creation=date" => {
-                let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 // stuff to get date & hour
                 let std_duration = metadata
                     .created()
@@ -212,7 +186,6 @@ impl Variables for super::Interpreter {
                 Ok(Literal { kind, content })
             },
             "creation=hour" => {
-                let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 // stuff to get date & hour
                 let std_duration = metadata
                     .created()
@@ -240,7 +213,6 @@ impl Variables for super::Interpreter {
                 Ok(Literal { kind, content })
             },
             "lastChange=date" => {
-                let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 // stuff to get date & hour
                 let std_duration = metadata
                     .modified()
@@ -263,7 +235,6 @@ impl Variables for super::Interpreter {
                 Ok(Literal { kind, content })
             },
             "lastChange=hour" => {
-                let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 // stuff to get date & hour
                 let std_duration = metadata
                     .modified()
@@ -290,7 +261,6 @@ impl Variables for super::Interpreter {
                 Ok(Literal { kind, content })
             },
             "lastAccess=date" => {
-                let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 // stuff to get date & hour
                 let std_duration = metadata
                     .accessed()
@@ -313,7 +283,6 @@ impl Variables for super::Interpreter {
                 Ok(Literal { kind, content })
             },
             "lastAccess=hour" => {
-                let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
                 // stuff to get date & hour
                 let std_duration = metadata
                     .accessed()
