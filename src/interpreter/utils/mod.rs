@@ -1,5 +1,7 @@
 use super::exceptions::Exceptions;
 use byte_unit::{Byte, ByteUnit};
+pub use bytes::ByteConversion;
+use core::time::Duration;
 use path_absolutize::*;
 use regex::Regex;
 use sha1::{Digest, Sha1};
@@ -12,12 +14,14 @@ use std::path::Path;
 pub use string::Str;
 pub use sum::Sum;
 pub use sum::SumTypes;
+pub use time::Timestamps;
 
 pub mod bytes;
 pub mod path;
 pub mod regexp;
 pub mod string;
 pub mod sum;
+pub mod time;
 
 impl bytes::ByteConversion for super::Interpreter {
     fn convert(&self, from: u128, to: ByteUnit) -> f64 {
@@ -135,5 +139,41 @@ impl Sum for super::Interpreter {
             reader.read_to_end(&mut buffer).unwrap();
         }
         buffer
+    }
+}
+
+impl time::Timestamps for super::Interpreter {
+    fn get_date(&self, timestamp: Duration) -> String {
+        let chrono_duration = chrono::Duration::from_std(timestamp).unwrap();
+        let unix = chrono::naive::NaiveDateTime::from_timestamp(0, 0);
+        let naive = unix + chrono_duration;
+
+        // remove hour
+        let str = format!("{:?}", naive);
+        let mut str_chars = str.chars();
+        for _ in 0..19 {
+            str_chars.next_back();
+        }
+
+        str_chars.as_str().to_string()
+    }
+    fn get_hour(&self, timestamp: Duration) -> String {
+        let chrono_duration = chrono::Duration::from_std(timestamp).unwrap();
+        let unix = chrono::naive::NaiveDateTime::from_timestamp(0, 0);
+        let naive = unix + chrono_duration;
+
+        // remove date
+        let str = format!("{:?}", naive);
+        let mut str_chars = str.chars();
+        for _ in 0..12 {
+            str_chars.next();
+        }
+
+        // remove ms
+        for _ in 0..10 {
+            str_chars.next_back();
+        }
+
+        str_chars.as_str().to_string()
     }
 }

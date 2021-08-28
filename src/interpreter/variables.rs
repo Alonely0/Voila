@@ -1,7 +1,4 @@
-extern crate chrono;
-
-use super::utils::bytes::ByteConversion;
-use super::utils::{path::Path, Str, Sum, SumTypes};
+use super::utils::{path::Path, ByteConversion, Str, Sum, SumTypes, Timestamps};
 use super::{Literal, LiteralKind};
 use byte_unit::ByteUnit;
 use std::ffi::OsString;
@@ -163,151 +160,66 @@ impl Variables for super::Interpreter {
                     },
                 })
             },
-            "creation=date" => {
-                // stuff to get date & hour
-                let std_duration = metadata
-                    .created()
-                    .unwrap()
-                    .duration_since(SystemTime::UNIX_EPOCH)
-                    .unwrap();
-                let chrono_duration = chrono::Duration::from_std(std_duration).unwrap();
-                let unix = chrono::naive::NaiveDateTime::from_timestamp(0, 0);
-                let naive = unix + chrono_duration;
-
-                // remove hour
-                let str = format!("{:?}", naive);
-                let mut str_chars = str.chars();
-                for _ in 0..19 {
-                    str_chars.next_back();
-                }
-
-                let kind = LiteralKind::Str;
-                let content = String::from(str_chars.as_str());
-                Ok(Literal { kind, content })
-            },
-            "creation=hour" => {
-                // stuff to get date & hour
-                let std_duration = metadata
-                    .created()
-                    .unwrap()
-                    .duration_since(SystemTime::UNIX_EPOCH)
-                    .unwrap();
-                let chrono_duration = chrono::Duration::from_std(std_duration).unwrap();
-                let unix = chrono::naive::NaiveDateTime::from_timestamp(0, 0);
-                let naive = unix + chrono_duration;
-
-                // remove date
-                let str = format!("{:?}", naive);
-                let mut str_chars = str.chars();
-                for _ in 0..12 {
-                    str_chars.next();
-                }
-
-                // remove ms
-                for _ in 0..10 {
-                    str_chars.next_back();
-                }
-
-                let kind = LiteralKind::Str;
-                let content = String::from(str_chars.as_str());
-                Ok(Literal { kind, content })
-            },
-            "lastChange=date" => {
-                // stuff to get date & hour
-                let std_duration = metadata
-                    .modified()
-                    .unwrap()
-                    .duration_since(SystemTime::UNIX_EPOCH)
-                    .unwrap();
-                let chrono_duration = chrono::Duration::from_std(std_duration).unwrap();
-                let unix = chrono::naive::NaiveDateTime::from_timestamp(0, 0);
-                let naive = unix + chrono_duration;
-
-                // remove hour
-                let str = format!("{:?}", naive);
-                let mut str_chars = str.chars();
-                for _ in 0..19 {
-                    str_chars.next_back();
-                }
-
-                let kind = LiteralKind::Str;
-                let content = String::from(str_chars.as_str());
-                Ok(Literal { kind, content })
-            },
-            "lastChange=hour" => {
-                // stuff to get date & hour
-                let std_duration = metadata
-                    .modified()
-                    .unwrap()
-                    .duration_since(SystemTime::UNIX_EPOCH)
-                    .unwrap();
-                let chrono_duration = chrono::Duration::from_std(std_duration).unwrap();
-                let unix = chrono::naive::NaiveDateTime::from_timestamp(0, 0);
-                let naive = unix + chrono_duration;
-
-                // remove date
-                let str = format!("{:?}", naive);
-                let mut str_chars = str.chars();
-                for _ in 0..12 {
-                    str_chars.next();
-                }
-                // remove ms
-                for _ in 0..10 {
-                    str_chars.next_back();
-                }
-
-                let kind = LiteralKind::Str;
-                let content = String::from(str_chars.as_str());
-                Ok(Literal { kind, content })
-            },
-            "lastAccess=date" => {
-                // stuff to get date & hour
-                let std_duration = metadata
-                    .accessed()
-                    .unwrap()
-                    .duration_since(SystemTime::UNIX_EPOCH)
-                    .unwrap();
-                let chrono_duration = chrono::Duration::from_std(std_duration).unwrap();
-                let unix = chrono::naive::NaiveDateTime::from_timestamp(0, 0);
-                let naive = unix + chrono_duration;
-
-                // remove hour
-                let str = format!("{:?}", naive);
-                let mut str_chars = str.chars();
-                for _ in 0..19 {
-                    str_chars.next_back();
-                }
-
-                let kind = LiteralKind::Str;
-                let content = String::from(str_chars.as_str());
-                Ok(Literal { kind, content })
-            },
-            "lastAccess=hour" => {
-                // stuff to get date & hour
-                let std_duration = metadata
-                    .accessed()
-                    .unwrap()
-                    .duration_since(SystemTime::UNIX_EPOCH)
-                    .unwrap();
-                let chrono_duration = chrono::Duration::from_std(std_duration).unwrap();
-                let unix = chrono::naive::NaiveDateTime::from_timestamp(0, 0);
-                let naive = unix + chrono_duration;
-
-                // remove date
-                let str = format!("{:?}", naive);
-                let mut str_chars = str.chars();
-                for _ in 0..12 {
-                    str_chars.next();
-                }
-                // remove ms
-                for _ in 0..10 {
-                    str_chars.next_back();
-                }
-
-                let kind = LiteralKind::Str;
-                let content = String::from(str_chars.as_str());
-                Ok(Literal { kind, content })
-            },
+            "creation=date" => Ok(Literal {
+                kind: LiteralKind::Str,
+                content: self.get_date(
+                    metadata
+                        .created()
+                        .unwrap()
+                        .duration_since(SystemTime::UNIX_EPOCH)
+                        .unwrap(),
+                ),
+            }),
+            "creation=hour" => Ok(Literal {
+                kind: LiteralKind::Str,
+                content: self.get_hour(
+                    metadata
+                        .created()
+                        .unwrap()
+                        .duration_since(SystemTime::UNIX_EPOCH)
+                        .unwrap(),
+                ),
+            }),
+            "lastChange=date" => Ok(Literal {
+                kind: LiteralKind::Str,
+                content: self.get_date(
+                    metadata
+                        .modified()
+                        .unwrap()
+                        .duration_since(SystemTime::UNIX_EPOCH)
+                        .unwrap(),
+                ),
+            }),
+            "lastChange=hour" => Ok(Literal {
+                kind: LiteralKind::Str,
+                content: self.get_hour(
+                    metadata
+                        .modified()
+                        .unwrap()
+                        .duration_since(SystemTime::UNIX_EPOCH)
+                        .unwrap(),
+                ),
+            }),
+            "lastAccess=date" => Ok(Literal {
+                kind: LiteralKind::Str,
+                content: self.get_date(
+                    metadata
+                        .accessed()
+                        .unwrap()
+                        .duration_since(SystemTime::UNIX_EPOCH)
+                        .unwrap(),
+                ),
+            }),
+            "lastAccess=hour" => Ok(Literal {
+                kind: LiteralKind::Str,
+                content: self.get_hour(
+                    metadata
+                        .accessed()
+                        .unwrap()
+                        .duration_since(SystemTime::UNIX_EPOCH)
+                        .unwrap(),
+                ),
+            }),
             _ => {
                 let kind = LiteralKind::Str;
                 let content = if var.kind == LiteralKind::Var {
