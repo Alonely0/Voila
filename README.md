@@ -61,7 +61,7 @@ These are the available operations/functions:
 * `mkdir`: cretes a folder/directory
 * `delete`: deletes file/directory ⚠️
 * `move`: moves a file or a folder/directory ⚠️
-* `copy`: copies a file or a folder/directory ⚠️
+* `copy`: copies a file or a folder/directory
 * `gzc`: compress file using gzip. first argument is the file to compress, the second is the file to save the compressed file
 * `gzd`: decompress file using gzip. first argument is the file to compress, the second is be file to save the compressed file
 * `shell`: gives a command to the Bourne Shell (`sh`) in Unix systems (like Linux or macOS), and a command to PowerShell (`powershell`) in Windows systems. Exists for doing things Voila functions can't, for example, send a dbus message. ⚠️
@@ -74,7 +74,7 @@ These are the available operations/functions:
 
 * `voila /backup "@creation=date <= 2020-01-01 { print(@name has been deleted) delete(@path) }`: Voila will delete every file in /backup whose creation was earlier to 2020 printing a delete message.
 * `voila /backup "@name ~= #(.*)-2020# { print(@name has been deleted) delete(@path) }`: Voila will delete every file in /backup ending in 2020 printing a delete message.
-* `voila /something "@md5256sum == 308uyrp028y4hp079y2hv92gbf49 { mkdir(./sums); create(./sums/@name.sum, @sha256sum) }`: Voila will create a folder in the current directory named "sums", will search for a file with that md5 checksum, get its sha256 checksum and save it in the sums folder.
+* `voila /something "@sum=md5 == 308uyrp028y4hp079y2hv92gbf49 { mkdir(./sums); create(./sums/@name.sum, @sum=sha256) }`: Voila will create a folder in the current directory named "sums", will search for a file with that md5 checksum, get its sha256 checksum and save it in the sums folder.
 * `voila /backup "@size=gb >= 1 { print(@name has been deleted) delete(@path) }`: Voila will delete every file in /backup weighter than 1gb printing a delete message.
 
 ## CLI flags
