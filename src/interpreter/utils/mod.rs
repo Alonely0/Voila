@@ -1,4 +1,5 @@
 use super::exceptions::Exceptions;
+use byte_unit::{Byte, ByteUnit};
 use path_absolutize::*;
 use regex::Regex;
 use sha1::{Digest, Sha1};
@@ -12,10 +13,27 @@ pub use string::Str;
 pub use sum::Sum;
 pub use sum::SumTypes;
 
+pub mod bytes;
 pub mod path;
 pub mod regexp;
 pub mod string;
 pub mod sum;
+
+impl bytes::ByteConversion for super::Interpreter {
+    fn convert(&self, from: u128, to: ByteUnit) -> f64 {
+        // get size in format needed, then get str & convert it to chars
+        let str = format!("{}", Byte::from_bytes(from).get_adjusted_unit(to));
+        let mut str_chars = str.chars();
+
+        // remove size label
+        for _ in 0..3 {
+            str_chars.next_back();
+        }
+
+        // convert to u128 & return
+        str_chars.as_str().parse::<f64>().unwrap()
+    }
+}
 
 impl path::Path for super::Interpreter {
     fn exist(&self, input: &str) -> bool {

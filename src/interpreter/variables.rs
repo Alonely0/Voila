@@ -1,5 +1,9 @@
 extern crate chrono;
 
+use super::utils::bytes::ByteConversion;
+use super::utils::{path::Path, Str, Sum, SumTypes};
+use super::{Literal, LiteralKind};
+use byte_unit::ByteUnit;
 use std::ffi::OsString;
 use std::fs;
 use std::io::prelude::*;
@@ -8,9 +12,6 @@ use std::os::unix::fs::MetadataExt;
 use std::path;
 use std::path::PathBuf;
 use std::time::SystemTime;
-
-use super::utils::{path::Path, Str, Sum, SumTypes};
-use super::{Literal, LiteralKind};
 
 pub trait Variables {
     fn get_var_if_any(&self, var: &Literal) -> Result<Literal, String>;
@@ -46,77 +47,42 @@ impl Variables for super::Interpreter {
             "size=tb" => {
                 // get metadata
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
-                // get bytes object from file size
-                let byte = byte_unit::Byte::from_bytes(metadata.len() as u128);
-                // get size in format needed, then get str & convert it to chars
-                let str = format!("{}", byte.get_adjusted_unit(byte_unit::ByteUnit::TB));
-                let mut str_chars = str.chars();
-                // remove size label
-                str_chars.next_back();
-                str_chars.next_back();
-                str_chars.next_back();
 
                 Ok(Literal {
                     kind: LiteralKind::Str,
-                    content: String::from(str_chars.as_str()),
+                    content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::TB)),
                 })
             },
             "size=gb" => {
                 // get metadata
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
-                // get bytes object from file size
-                let byte = byte_unit::Byte::from_bytes(metadata.len() as u128);
-                // get size in format needed, then get str & convert it to chars
-                let str = format!("{}", byte.get_adjusted_unit(byte_unit::ByteUnit::GB));
-                let mut str_chars = str.chars();
-                // remove size label
-                str_chars.next_back();
-                str_chars.next_back();
-                str_chars.next_back();
 
                 Ok(Literal {
                     kind: LiteralKind::Str,
-                    content: String::from(str_chars.as_str()),
+                    content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::GB)),
                 })
             },
             "size=mb" => {
                 // get metadata
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
-                // get bytes object from file size
-                let byte = byte_unit::Byte::from_bytes(metadata.len() as u128);
-                // get size in format needed, then get str & convert it to chars
-                let str = format!("{}", byte.get_adjusted_unit(byte_unit::ByteUnit::MB));
-                let mut str_chars = str.chars();
-                // remove size label
-                str_chars.next_back();
-                str_chars.next_back();
-                str_chars.next_back();
 
                 Ok(Literal {
                     kind: LiteralKind::Str,
-                    content: String::from(str_chars.as_str()),
+                    content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::MB)),
                 })
             },
             "size=kb" => {
                 // get metadata
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
-                // get bytes object from file size
-                let byte = byte_unit::Byte::from_bytes(metadata.len() as u128);
-                // get size in format needed, then get str & convert it to chars
-                let str = format!("{}", byte.get_adjusted_unit(byte_unit::ByteUnit::KB));
-                let mut str_chars = str.chars();
-                // remove size label
-                str_chars.next_back();
-                str_chars.next_back();
-                str_chars.next_back();
 
                 Ok(Literal {
                     kind: LiteralKind::Str,
-                    content: String::from(str_chars.as_str()),
+                    content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::KB)),
                 })
             },
             "size=bs" => {
                 let metadata = fs::metadata(self.trim_spaces(&self.__file__)).unwrap();
+
                 Ok(Literal {
                     kind: LiteralKind::Str,
                     content: format!("{}", metadata.len()),
