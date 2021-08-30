@@ -4,14 +4,9 @@
 #![feature(box_syntax)]
 #![allow(clippy::upper_case_acronyms)]
 
-use futures::executor::block_on;
-use macros::println_on_debug;
+use voila::macros::println_on_debug;
 
 mod cli;
-mod interpreter;
-mod lexer;
-mod macros;
-mod parser;
 
 fn main() {
     let cli_args: cli::Cli = cli::get_cli_args();
@@ -28,9 +23,7 @@ For more information see the README.\n
         env!("CARGO_PKG_VERSION")
     );
 
-    let tokens: Vec<lexer::Token> = lexer::lex(&cli_args.source); // lex source
-    let ast: parser::ast::AST = parser::parse(tokens); // parse tokens
-    block_on(interpreter::run(ast, cli_args.dir, cli_args.recursive)); // wait interpreter to finish
+    voila::run(&cli_args.source, cli_args.dir, cli_args.recursive);
 
     println_on_debug!(
         "\n------------------------------  VOILA EXECUTION ENDED  --------------------------------"

@@ -52,6 +52,10 @@ flate2 = "1.0.20"
 [dev-dependencies]
 criterion = "0.3.5"
 
+[lib]
+name = "voila"
+path = "src/lib.rs"
+
 [[bench]]
 name = "benchmark"
 harness = false
