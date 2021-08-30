@@ -13,6 +13,7 @@ mod interpreter;
 mod lexer;
 pub mod macros;
 mod parser;
+mod parser2; // temporary.
 
 pub fn run(source: &str, dir: std::path::PathBuf, recursive: bool) {
     let tokens: Vec<lexer::Token> = lexer::lex(&source); // lex source
