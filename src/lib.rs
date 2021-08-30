@@ -8,18 +8,13 @@
 use futures::executor::block_on;
 use macros::println_on_debug;
 
-#[path = "cli.rs"]
 mod cli;
-#[path = "interpreter/mod.rs"]
 mod interpreter;
-#[path = "lexer.rs"]
 mod lexer;
-#[path = "macros.rs"]
-mod macros;
-#[path = "parser/mod.rs"]
+pub mod macros;
 mod parser;
 
-pub fn run(source: String, dir: std::path::PathBuf, recursive: bool) {
+pub fn run(source: &str, dir: std::path::PathBuf, recursive: bool) {
     let tokens: Vec<lexer::Token> = lexer::lex(&source); // lex source
     let ast = parser::parse(tokens); // parse tokens
     block_on(interpreter::run(ast, dir, recursive)); // wait interpreter to finish
