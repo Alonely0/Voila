@@ -196,7 +196,8 @@ impl Functions for super::Interpreter {
 
         // init a compressed bytes writer
         // with destination to the file
-        let mut compressor = ParGz::builder(fs::File::create(self.trim_spaces(&args[1])).unwrap()).build();
+        let mut compressor =
+            ParGz::builder(fs::File::create(self.trim_spaces(&args[1])).unwrap()).build();
 
         // send bytes to compressor and write them
         compressor.write_all(&content).unwrap();
