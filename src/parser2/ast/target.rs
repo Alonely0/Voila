@@ -2,6 +2,17 @@ use super::HasSpan;
 use super::{Cycle, Expr};
 use std::ops::Range;
 
+/// A targeto is the combination of an (optional) [Expr] as its condition
+/// and a block of [Cycle]s to execute.
+///
+/// # Examples
+///
+/// ```voila
+/// @size=mb > 1 { delete(@name) }
+/// ```
+/// ```voila
+/// { print(Found @name => @path) }
+/// ```
 #[derive(Debug)]
 pub struct Target<'source> {
     condition: Option<Expr<'source>>,

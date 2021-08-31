@@ -2,6 +2,27 @@ use super::Call;
 use super::HasSpan;
 use std::ops::Range;
 
+/// A cycle is a group of calls that are run asynchronously.
+/// Every cycle must finish completely before the next cycle
+/// starts executing.
+///
+/// # Safety
+/// Note that inside the same cycle, all the functions will be executed
+/// in their own thread. This means that destructive functions might cause
+/// data races in the system, so use them carefully!
+///
+/// # Example
+/// ```voila
+/// @size=gb > 1 {
+///     print(@name is too big. Deleting it)
+///     delete(@path)
+///     ;
+///     print(@name has been deleted)
+/// }
+/// ```
+///
+/// In this example, first `print` will be executid while the file is being deleted,
+/// and the second `pritn` will be executed when the file has been deleted successfully.
 #[derive(Debug)]
 pub struct Cycle<'source> {
     calls: Vec<Call<'source>>,
