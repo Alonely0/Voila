@@ -2,6 +2,29 @@ use super::HasSpan;
 use super::Token;
 use std::ops::Range;
 
+// TODO: update `Expr` docs when static analyzer is brought into life
+
+/// The conditional to filter when a block will be executed.
+///
+/// They are composed by [values](Value) and [operators](Operator). The expression ends up in a `bool`,
+/// which determines whether the block will be eecuted or not.
+///
+///
+/// # Panics: Coherence
+/// Voila doesn't have yet any way to check that the comparisons make sense before going and
+/// executing them, so it will panic whenever it finds a one that is ill-constructed.
+///
+/// Because of this, the type rules are quite relaxed. But be careful with pattern matches and
+/// relational comparisons, because there is no other reasonable way to relax those rules without
+/// breaking the consistency of the operator.
+///
+/// # Examples
+/// ```voila
+/// @size=mb > 1.23 && @txt { ... }
+/// ```
+/// ```voila
+/// @sha256sum ~= #.*e0.*# { ... }
+/// ```
 #[derive(Debug)]
 pub enum Expr<'source> {
     Value(Value<'source>),
@@ -22,17 +45,43 @@ impl HasSpan for Expr<'_> {
     }
 }
 
+/// The operators than help build [Expr]s
+/// # Supported operators
+/// The currently supported operators are:
+/// - Equality operators: `==` and `!=`
+/// Currently the comparison is string-based, although that might change it the future.
+/// - Relative operators: `>=`, `<=`, `>` and `<`
+/// These comparisons are number-based on both sides. The numbers can be integers
+/// or decimal numbers, which will be cut to a precision of 2 digits.
+/// - Pattern match operators: `~=` and `!~`
+/// The left hand side will always be converted to a string, and the right hand side
+/// must be a valid regex.
+/// - Logic operators: `&&` and `||`
+/// Both sides must result in a bool. Anything that is not a bool (regex, string, variable) will
+/// become true for the moment. There are plans to forbid this in the future with a static
+/// analyzer.
+///
 #[derive(Debug)]
 pub enum Operator {
+    /// `!=`: True if the two sides are strictly not equal.
     NEquals,
+    /// `==`: True if the two sides are strictly equal.
     Equals,
+    /// `~=`: True if the string matches the regex
     Matches,
+    /// `!~`: True if the string doesn't match the regex
     NMatches,
+    /// `&&`: True if both sides are true.
     LogicAnd,
+    /// `||`: True if either of the sides is true.
     LogicOr,
+    /// `<` : True if the left hand side is strictly less than the right hand side
     LessThan,
+    /// `<=`: True if the left hand side is less than, or equal to, the right hand side
     LessEqual,
+    /// `>` : True if the left hand side is strictly greater than the right hand side
     GreaterThan,
+    /// `>=`: True if the left hand side is greater than, or equal to, the right hand side
     GreaterEqual,
 }
 
@@ -67,6 +116,22 @@ impl Operator {
         })
     }
 }
+
+/// The simplest form of an [Expr]. It can be etiher a string literal,
+/// a variable to look up, or a regex.
+///
+/// # Panics:  Error handling
+/// Regex errors are already caught at parse time, which will output a nice
+/// formatted error with the line number when it happens.
+///
+/// On the other hand, variables are chacked at runtime, which will cause a panic
+/// if they are not present, so don't expect to see the source code and a nice
+/// pointy arrow to the error.
+///
+/// # Examples
+/// - string literal: `hello` (no spaces)
+/// - variable: `@size=mb`
+/// - regex: `#some .* regex#`
 #[derive(Debug)]
 pub enum Value<'source> {
     Literal(&'source str, Range<usize>),

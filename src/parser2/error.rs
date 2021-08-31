@@ -2,6 +2,13 @@ use std::error::Error;
 use std::fmt;
 use std::ops::Range;
 
+// TODO: remove the optional span, and just have a `with_source` on `SourceError`,
+// with the start and end `Position`s in the source error struct.
+
+/// Error that is ready to represent to the user in a nice way,
+/// including a line snippet with the error position, and a bunch
+/// of contexts to help the user know what the program was up to
+/// when the error happened.
 #[derive(Debug)]
 pub struct SourceError<T> {
     pub kind: T,

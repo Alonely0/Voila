@@ -3,6 +3,19 @@ use super::HasSpan;
 use super::Token;
 use std::ops::Range;
 
+/// Represents a call in the script like
+/// `shell` or `delete`. All functions receive the arguments in
+/// interpolated strings, which will have their variables resolved
+/// before execution.
+///
+/// # List of non-destructive functions
+/// These functions are safe to use without any worries that
+/// any data will be eliminated:
+///     - `print`
+///     - `mkdir`
+/// `shell` won't be in the list, since you can do absolutely anything
+/// when we give you a shell. The shell is an escape hatch to enable the
+/// integration of Voila to the rest of the system.
 #[derive(Debug)]
 pub struct Call<'source> {
     function_name: &'source str,
@@ -16,6 +29,15 @@ impl HasSpan for Call<'_> {
     }
 }
 
+/// Represents an argument to the call, with either
+/// a single string like `hello world` or an interpolated
+/// string with variables in it
+///
+/// # Examples
+///
+/// - `@name`
+/// - `@name is too big`
+/// - `hello world`
 #[derive(Debug)]
 pub enum Arg<'source> {
     Str(&'source str, Range<usize>),
