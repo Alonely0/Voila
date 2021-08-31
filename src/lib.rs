@@ -10,7 +10,6 @@ use macros::println_on_debug;
 
 mod cli;
 mod interpreter;
-mod interpreter2;
 mod lexer;
 pub mod macros;
 mod parser;
