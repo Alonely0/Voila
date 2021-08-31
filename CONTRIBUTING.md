@@ -25,8 +25,7 @@ Start reading our code and you'll get the hang of it. We optimize for readabilit
 
 - We indent using 4 spaces
 - Comment the code for explaining its purpose and what does, but without writing, obvious, unnecessary and redundant comments.
-- We ALWAYS put spaces after list items and method parameters (`[1, 2, 3]`, not `[1,2,3]`), around operators (`x += 1`, not `x+=1`), around arrows (`...) -> ...`, not `...)->...`), before curly brackets (`) {`, not `){`), etc. All code should be formatted with the official rust extension of VSCode.
-- This is open source software. Consider the people who will read your code, and make it look nice for them. It's sort of like driving a car: Perhaps you love doing donuts when you're alone, but with passengers the goal is to make the ride as smooth as possible.
+- We ALWAYS put spaces after list items and method parameters (`[1, 2, 3]`, not `[1,2,3]`), around operators (`x += 1`, not `x+=1`), around arrows (`...) -> ...`, not `...)->...`), before curly brackets (`) {`, not `){`), etc. This is just a convention, as when upload code to the repo it gets formatted automatically. This is open source software. Consider the people who will read your code, and make it look nice for them. It's sort of like driving a car: Perhaps you love doing donuts when you're alone, but with passengers the goal is to make the ride as smooth as possible.
 
 ---
 
