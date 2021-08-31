@@ -29,7 +29,7 @@ keywords = [
 
 [dependencies]
 md5 = "0.7.0"
-sha2 = "0.9.5"
+sha2 = "0.9.6"
 sha-1 = "0.9.8"
 path-absolutize = "3.0.10"
 walkdir = "2.3.2"
