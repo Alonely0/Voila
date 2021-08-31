@@ -65,12 +65,12 @@ impl<T> WantedSpec<T> {
     }
 }
 
-pub trait Parse: Sized {
-    fn from_source(src: &str) -> ParseRes<Self> {
+pub trait Parse<'source>: Sized {
+    fn from_source(src: &'source str) -> ParseRes<Self> {
         let mut parser = Parser::new(src);
         parser.parse()
     }
-    fn parse(parser: &mut Parser) -> ParseRes<Self>;
+    fn parse(parser: &mut Parser<'source>) -> ParseRes<Self>;
 }
 
 pub struct Parser<'source> {
@@ -186,14 +186,25 @@ impl<'source> Parser<'source> {
     }
 
     /// Alternative to [Parse::parse]
-    pub fn parse<P: Parse>(&mut self) -> ParseRes<P> {
+    pub fn parse<P: Parse<'source>>(&mut self) -> ParseRes<P> {
         P::parse(self)
     }
 
     /// Iterate the parser as many times as it can,
     /// only resulting in error if the error is critical
-    pub fn many<P: Parse>(&mut self) -> ParseRes<Vec<P>> {
+    pub fn many<P: Parse<'source>>(&mut self) -> ParseRes<Vec<P>> {
         self.repeat(Self::parse)
+    }
+
+    /// Run the closure and then accept the current token.
+    /// Useful to get stuff like the span and source
+    pub fn accept_after<F, T>(&mut self, mut closure: F) -> T
+    where
+        F: FnMut(&Self) -> T,
+    {
+        let result = closure(self);
+        self.accept_current();
+        result
     }
 
     pub fn sep_by_token<F, P>(&mut self, tok: Token, mut parser: F) -> ParseRes<Vec<P>>
@@ -255,7 +266,7 @@ impl<'source> Parser<'source> {
         Ok(vec)
     }
 
-    pub fn many_eof<P: Parse>(&mut self) -> ParseRes<Vec<P>> {
+    pub fn many_eof<P: Parse<'source>>(&mut self) -> ParseRes<Vec<P>> {
         let mut vec = Vec::new();
         #[allow(unused_assignments)]
         let mut last_err = None;
@@ -265,7 +276,7 @@ impl<'source> Parser<'source> {
                 Err(e) => {
                     last_err = Some(e);
                     break;
-                }
+                },
                 Ok(p) => vec.push(p),
             }
         }
@@ -308,7 +319,7 @@ impl fmt::Display for ParseErrorKind {
             Self::RegexError(re) => write!(f, "could not parse regex: {}", re),
             Self::Expected { wanted, found } => {
                 write!(f, "expected {}, but got instead {}", wanted, found)
-            }
+            },
             Self::UnexpectedChar(ch) => write!(f, "unexpected char: {:?}", ch),
             Self::UnexpectedEOF {
                 wanted: Some(ref wanted),
@@ -332,7 +343,7 @@ impl<T: fmt::Display> fmt::Display for WantedSpec<T> {
                 }
                 f.write_str(" or ")?;
                 last.fmt(f)
-            }
+            },
         }?;
         if let Some(expl) = self.explanation {
             write!(f, " ({})", expl)

@@ -1,17 +1,24 @@
 use super::Call;
+use super::HasSpan;
 use std::ops::Range;
 
 #[derive(Debug)]
-pub struct Cycle {
-    calls: Vec<Call>,
+pub struct Cycle<'source> {
+    calls: Vec<Call<'source>>,
     span: Range<usize>,
+}
+
+impl HasSpan for Cycle<'_> {
+    fn span(&self) -> &Range<usize> {
+        &self.span
+    }
 }
 
 use super::parser::*;
 use super::Token;
 
-impl Parse for Cycle {
-    fn parse(parser: &mut Parser) -> ParseRes<Self> {
+impl<'source> Parse<'source> for Cycle<'source> {
+    fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
         parser.with_context("parsing cycle", |parser| {
             let start = parser.offset();
             let mut calls = Vec::new();

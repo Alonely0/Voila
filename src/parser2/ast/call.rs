@@ -1,27 +1,42 @@
 use super::parser::{Parse, ParseRes, Parser};
+use super::HasSpan;
 use super::Token;
 use std::ops::Range;
 
 #[derive(Debug)]
-pub struct Call {
-    function_name: String,
-    arguments: Vec<Arg>,
+pub struct Call<'source> {
+    function_name: &'source str,
+    arguments: Vec<Arg<'source>>,
     span: Range<usize>,
 }
 
+impl HasSpan for Call<'_> {
+    fn span(&self) -> &Range<usize> {
+        &self.span
+    }
+}
+
 #[derive(Debug)]
-enum Arg {
-    Str(String, Range<usize>),
-    Lookup(String, Range<usize>),
+pub enum Arg<'source> {
+    Str(&'source str, Range<usize>),
+    Lookup(&'source str, Range<usize>),
     Interpolate {
-        lookups: Vec<String>,
-        sequence: Vec<(Option<String>, Range<usize>)>,
+        lookups: Vec<&'source str>,
+        sequence: Vec<(Option<&'source str>, Range<usize>)>,
         span: Range<usize>,
     },
 }
 
-impl Arg {
-    fn extend_var(self, var_name: String, var_span: &Range<usize>) -> Self {
+impl HasSpan for Arg<'_> {
+    fn span(&self) -> &Range<usize> {
+        match self {
+            Self::Str(_, span) | Self::Lookup(_, span) | Self::Interpolate { span, .. } => span,
+        }
+    }
+}
+
+impl<'source> Arg<'source> {
+    fn extend_var(self, var_name: &'source str, var_span: &Range<usize>) -> Self {
         match self {
             Self::Str(str, str_span) => Self::Interpolate {
                 lookups: vec![var_name],
@@ -48,29 +63,24 @@ impl Arg {
             },
         }
     }
-    fn extend_str(self, src: String, span: &Range<usize>, source: &str) -> Self {
+    fn extend_str(self, str_src: &'source str, span: &Range<usize>, source: &'source str) -> Self {
         match self {
-            Self::Str(mut first_src, mut first_span) => {
-                let spaces = &source[first_span.end..span.start];
-                // extend the original spaces
-                first_src.push_str(spaces);
-                // extend the literal
-                first_src.push_str(&src);
+            Self::Str(_, mut first_span) => {
                 // extend the span
                 first_span.end = span.end;
-                Self::Str(first_src, first_span)
+                Self::Str(&source[first_span.start..first_span.end], first_span)
             },
             Self::Lookup(var_name, var_span) => Self::Interpolate {
                 lookups: vec![var_name],
                 span: var_span.start..span.end,
-                sequence: vec![(None, var_span), (Some(src), span.clone())],
+                sequence: vec![(None, var_span), (Some(str_src), span.clone())],
             },
             Self::Interpolate {
                 lookups,
                 mut sequence,
                 span: interp_span,
             } => {
-                sequence.push((Some(src), span.clone()));
+                sequence.push((Some(str_src), span.clone()));
                 Self::Interpolate {
                     lookups,
                     sequence,
@@ -80,12 +90,11 @@ impl Arg {
         }
     }
 }
-impl Parse for Call {
-    fn parse(parser: &mut Parser) -> ParseRes<Self> {
+impl<'source> Parse<'source> for Call<'source> {
+    fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
         parser.with_context("parsing function call", |parser| {
-            let function_name = parser
-                .expect_token(Token::Identifier, Some("name for the function to call"))?
-                .to_string();
+            let function_name =
+                parser.expect_token(Token::Identifier, Some("name for the function to call"))?;
             let start = parser.current_token_span().start;
             parser.accept_current();
             parser.expect_token(
@@ -107,13 +116,13 @@ impl Parse for Call {
                     Token::Identifier => {
                         let src = parser.current_token_source();
                         let span = parser.current_token_span().clone();
-                        Arg::Str(src.to_string(), span)
+                        Arg::Str(src, span)
                     },
                     // TODO: check lookups? as they are known at first time
                     Token::Variable => {
                         let src = parser.current_token_source();
                         let span = parser.current_token_span().clone();
-                        Arg::Lookup(src.to_string(), span)
+                        Arg::Lookup(src, span)
                     },
                     _ => unreachable!(),
                 };
@@ -137,16 +146,16 @@ impl Parse for Call {
                             break;
                         },
                         Token::Variable => {
-                            let src = parser.current_token_source().to_string();
-                            let span = parser.current_token_span().clone();
-                            parser.accept_current();
+                            let src = parser.current_token_source();
+                            let span = parser.current_token_span();
                             arg = arg.extend_var(src, &span);
+                            parser.accept_current();
                         },
                         Token::Identifier => {
-                            let src = parser.current_token_source().to_string();
-                            let span = parser.current_token_span().clone();
-                            parser.accept_current();
+                            let src = parser.current_token_source();
+                            let span = parser.current_token_span();
                             arg = arg.extend_str(src, &span, parser.source());
+                            parser.accept_current();
                         },
                         _ => unreachable!(),
                     }
