@@ -7,6 +7,7 @@ use std::ops::Range;
 pub type ParseError = SourceError<ParseErrorKind>;
 pub type ParseRes<T> = Result<T, ParseError>;
 
+/// An error that occured during parsing
 #[derive(Debug)]
 pub enum ParseErrorKind {
     UnexpectedChar(char),
@@ -26,6 +27,8 @@ impl ParseErrorKind {
     }
 }
 
+// NOTE: this might be better in error.rs
+/// A way to specify what was expected in a more flexible way
 #[derive(Debug, Clone)]
 pub struct WantedSpec<T> {
     explicit: Vec<T>,
@@ -65,6 +68,8 @@ impl<T> WantedSpec<T> {
     }
 }
 
+/// Anything that can be parsed by the [Parser] will implement
+/// this trait.
 pub trait Parse<'source>: Sized {
     fn from_source(src: &'source str) -> ParseRes<Self> {
         let mut parser = Parser::new(src);
@@ -73,6 +78,8 @@ pub trait Parse<'source>: Sized {
     fn parse(parser: &mut Parser<'source>) -> ParseRes<Self>;
 }
 
+/// The main state machine around parsing. It helps repeating parsers,
+/// getting the next token
 pub struct Parser<'source> {
     input: &'source str,
     lexer: logos::Lexer<'source, Token>,
@@ -80,6 +87,7 @@ pub struct Parser<'source> {
 }
 
 impl<'source> Parser<'source> {
+    /// Get a brand new parser from the source string
     pub fn new(input: &'source str) -> Self {
         use logos::Logos;
         Self {
@@ -88,11 +96,14 @@ impl<'source> Parser<'source> {
             current: None,
         }
     }
+    /// Using the current lexer span and the source, generate a [SourceError]
+    /// with a [ParseErrorKind]
     pub fn error(&self, kind: ParseErrorKind) -> ParseError {
         ParseError::new(kind)
             .with_span(self.lexer.span())
             .with_source(self.input)
     }
+    /// Get the current token, or spit out a lex error
     pub fn current_token(&mut self) -> ParseRes<Option<Token>> {
         if let Some((tok, _)) = self.current {
             Ok(Some(tok))
@@ -113,9 +124,11 @@ impl<'source> Parser<'source> {
             )
         }
     }
+    /// Get the current parser's offset in the source code
     pub fn offset(&self) -> usize {
         self.lexer.span().end
     }
+    /// When having lexed a [Token] and not yet accepted it, get its source string
     pub fn current_token_source(&self) -> &'source str {
         let range = self
             .current
@@ -125,6 +138,7 @@ impl<'source> Parser<'source> {
             .clone();
         &self.input[range]
     }
+    /// When having lexed a [Token] and not yet accepted it, get its source span
     pub fn current_token_span(&self) -> &Range<usize> {
         &self
             .current
@@ -132,6 +146,7 @@ impl<'source> Parser<'source> {
             .expect("called current_token_span with no token")
             .1
     }
+    /// Expect any token except eof
     pub fn expect_any_token(&mut self, wanted: Option<WantedSpec<Token>>) -> ParseRes<Token> {
         self.current_token()?
             .ok_or_else(|| self.error(ParseErrorKind::UnexpectedEOF { wanted }))
@@ -160,6 +175,7 @@ impl<'source> Parser<'source> {
         Err(self.error(ParseErrorKind::Expected { wanted, found: tok }))
     }
 
+    /// Expect a specific token
     pub fn expect_token(
         &mut self,
         tok: Token,
@@ -181,6 +197,8 @@ impl<'source> Parser<'source> {
         }
     }
 
+    /// Accept the current token. This makes the parser forget where the token's span is,
+    /// so make sure to grab it before you call this function!
     pub fn accept_current(&mut self) {
         self.current = None
     }
@@ -188,12 +206,6 @@ impl<'source> Parser<'source> {
     /// Alternative to [Parse::parse]
     pub fn parse<P: Parse<'source>>(&mut self) -> ParseRes<P> {
         P::parse(self)
-    }
-
-    /// Iterate the parser as many times as it can,
-    /// only resulting in error if the error is critical
-    pub fn many<P: Parse<'source>>(&mut self) -> ParseRes<Vec<P>> {
-        self.repeat(Self::parse)
     }
 
     /// Run the closure and then accept the current token.
@@ -207,22 +219,8 @@ impl<'source> Parser<'source> {
         result
     }
 
-    pub fn sep_by_token<F, P>(&mut self, tok: Token, mut parser: F) -> ParseRes<Vec<P>>
-    where
-        F: FnMut(&mut Self) -> ParseRes<P>,
-    {
-        let mut vec = match parser(self) {
-            Err(e) => return Err(e),
-            Ok(first) => vec![first],
-        };
-        while self.current_token()?.filter(|t| t == &tok).is_some() {
-            self.accept_current();
-            vec.push(parser(self)?);
-        }
-        Ok(vec)
-    }
-
-    pub fn repeat<F, P>(&mut self, mut parser: F) -> ParseRes<Vec<P>>
+    /// Repeat a parser until EOF
+    pub fn till_eof<F, P>(&mut self, mut parser: F) -> ParseRes<Vec<P>>
     where
         F: FnMut(&mut Self) -> ParseRes<P>,
     {
@@ -246,58 +244,20 @@ impl<'source> Parser<'source> {
         Ok(vec)
     }
 
-    pub fn repeat_sep<F, P>(&mut self, sep: Token, end: Token, mut parser: F) -> ParseRes<Vec<P>>
-    where
-        F: FnMut(&mut Self) -> ParseRes<P>,
-    {
-        let mut vec = if self.current_token()?.filter(|t| t == &end).is_some() {
-            return Ok(Vec::new());
-        } else {
-            vec![parser(self)?]
-        };
-        while self
-            .current_token()?
-            .filter(|t| t != &end && t == &sep)
-            .is_some()
-        {
-            self.accept_current();
-            vec.push(parser(self)?);
-        }
-        Ok(vec)
-    }
-
+    /// Parse a [Parse] object as many times until it hits EOF
     pub fn many_eof<P: Parse<'source>>(&mut self) -> ParseRes<Vec<P>> {
-        let mut vec = Vec::new();
-        #[allow(unused_assignments)]
-        let mut last_err = None;
-        loop {
-            match self.parse::<P>() {
-                Err(e) if e.kind.is_critical() => return Err(e),
-                Err(e) => {
-                    last_err = Some(e);
-                    break;
-                },
-                Ok(p) => vec.push(p),
-            }
-        }
-        if let Some(err) = self.lexer.next().and(last_err) {
-            Err(err)
-        } else {
-            Ok(vec)
-        }
+        self.till_eof(Self::parse)
     }
 
+    /// Executes a parser, adding the specified context to the resulting error
     pub fn with_context<F, T>(&mut self, ctx: &'static str, mut cont: F) -> ParseRes<T>
     where
         F: FnMut(&mut Self) -> ParseRes<T>,
     {
         cont(self).map_err(|e| e.with_context(ctx))
-        // eprintln!("entering context: {}", ctx);
-        // let res = cont(self).map_err(|e| e.with_context(ctx))?;
-        // eprintln!("exiting context: {}", ctx);
-        // Ok(res)
     }
 
+    /// Gets the parser's full source string
     pub fn source(&self) -> &'source str {
         self.input
     }
