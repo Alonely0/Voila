@@ -192,11 +192,11 @@ impl Functions for super::Interpreter {
 
         // get bytes of file to compress
         // and store them in a buffer
-        let content = self.read_bytes_of_file(&args[0]);
+        let content = self.read_bytes_of_file(&self.trim_spaces(&args[0]));
 
         // init a compressed bytes writer
         // with destination to the file
-        let mut compressor = ParGz::builder(fs::File::create(&args[1]).unwrap()).build();
+        let mut compressor = ParGz::builder(fs::File::create(self.trim_spaces(&args[1])).unwrap()).build();
 
         // send bytes to compressor and write them
         compressor.write_all(&content).unwrap();
@@ -214,7 +214,7 @@ impl Functions for super::Interpreter {
         }
 
         // get compressed file
-        let compressed_file = fs::File::open(&args[0]).unwrap();
+        let compressed_file = fs::File::open(self.trim_spaces(&args[0])).unwrap();
 
         // init a decompressor over
         // a readbuffer of the file
@@ -229,7 +229,7 @@ impl Functions for super::Interpreter {
         decompressor.read_to_end(&mut buffer).unwrap();
 
         // dump buffer into the file
-        fs::write(&args[1], &buffer).unwrap();
+        fs::write(self.trim_spaces(&args[1]), &buffer).unwrap();
     }
     fn r#shell(&self, args: Args) {
         for arg in args {
