@@ -1,18 +1,25 @@
+use super::HasSpan;
 use super::{Cycle, Expr};
 use std::ops::Range;
 
 #[derive(Debug)]
-pub struct Target {
-    condition: Option<Expr>,
-    cycles: Vec<Cycle>,
+pub struct Target<'source> {
+    condition: Option<Expr<'source>>,
+    cycles: Vec<Cycle<'source>>,
     span: Range<usize>,
+}
+
+impl HasSpan for Target<'_> {
+    fn span(&self) -> &Range<usize> {
+        &self.span
+    }
 }
 
 use super::parser::*;
 use super::Token;
 
-impl Parse for Target {
-    fn parse(parser: &mut Parser) -> ParseRes<Self> {
+impl<'source> Parse<'source> for Target<'source> {
+    fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
         parser.with_context("parsing target", |parser| {
             let res = match parser.expect_one_of_tokens(
                 &[Token::OpenBrace, Token::Identifier, Token::Variable],
