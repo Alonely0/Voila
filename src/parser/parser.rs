@@ -71,7 +71,7 @@ impl<T> WantedSpec<T> {
 /// Anything that can be parsed by the [Parser] will implement
 /// this trait.
 pub trait Parse<'source>: Sized {
-    fn from_source(src: &'source str) -> ParseRes<Self> {
+    fn parse_source(src: &'source str) -> ParseRes<Self> {
         let mut parser = Parser::new(src);
         parser.parse()
     }
