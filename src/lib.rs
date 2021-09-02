@@ -7,16 +7,15 @@
 
 use futures::executor::block_on;
 use macros::println_on_debug;
+use std::error::Error;
 
 mod cli;
 mod interpreter;
-mod lexer;
 pub mod macros;
 mod parser;
-mod parser2; // temporary.
 
-pub fn run(source: &str, dir: std::path::PathBuf, recursive: bool) {
-    let tokens: Vec<lexer::Token> = lexer::lex(&source); // lex source
-    let ast = parser::parse(tokens); // parse tokens
+pub fn run(source: &str, dir: std::path::PathBuf, recursive: bool) -> Result<(), Box<dyn Error>> {
+    let ast = parser::parse_script(source)?;
     block_on(interpreter::run(ast, dir, recursive)); // wait interpreter to finish
+    Ok(())
 }
