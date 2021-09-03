@@ -1,5 +1,6 @@
 use super::parser::{Parse, ParseRes, Parser};
 use super::HasSpan;
+use super::Lookup;
 use super::Token;
 use std::ops::Range;
 
@@ -41,9 +42,9 @@ impl HasSpan for Call<'_> {
 #[derive(Debug)]
 pub enum Arg<'source> {
     Str(&'source str, Range<usize>),
-    Lookup(&'source str, Range<usize>),
+    Lookup(Lookup, Range<usize>),
     Interpolate {
-        lookups: Vec<&'source str>,
+        lookups: Vec<Lookup>,
         sequence: Vec<(Option<&'source str>, Range<usize>)>,
         span: Range<usize>,
     },
@@ -58,15 +59,15 @@ impl HasSpan for Arg<'_> {
 }
 
 impl<'source> Arg<'source> {
-    fn extend_var(self, var_name: &'source str, var_span: &Range<usize>) -> Self {
+    fn extend_var(self, var_lookup: Lookup, var_span: &Range<usize>) -> Self {
         match self {
             Self::Str(str, str_span) => Self::Interpolate {
-                lookups: vec![var_name],
+                lookups: vec![var_lookup],
                 span: str_span.start..var_span.end,
                 sequence: vec![(Some(str), str_span), (None, var_span.clone())],
             },
             Self::Lookup(lookup, lookup_span) => Self::Interpolate {
-                lookups: vec![lookup, var_name],
+                lookups: vec![lookup, var_lookup],
                 span: lookup_span.start..var_span.end,
                 sequence: vec![(None, lookup_span), (None, var_span.clone())],
             },
@@ -75,7 +76,7 @@ impl<'source> Arg<'source> {
                 mut sequence,
                 span: interp_span,
             } => {
-                lookups.push(var_name);
+                lookups.push(var_lookup);
                 sequence.push((None, var_span.clone()));
                 Self::Interpolate {
                     lookups,
@@ -142,7 +143,7 @@ impl<'source> Parse<'source> for Call<'source> {
                     },
                     // TODO: check lookups? as they are known at first time
                     Token::Variable => {
-                        let src = parser.current_token_source();
+                        let src = parser.parse()?;
                         let span = parser.current_token_span().clone();
                         Arg::Lookup(src, span)
                     },
@@ -168,7 +169,7 @@ impl<'source> Parse<'source> for Call<'source> {
                             break;
                         },
                         Token::Variable => {
-                            let src = parser.current_token_source();
+                            let src = parser.parse()?;
                             let span = parser.current_token_span();
                             arg = arg.extend_var(src, &span);
                             parser.accept_current();

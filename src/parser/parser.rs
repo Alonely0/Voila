@@ -19,6 +19,15 @@ pub enum ParseErrorKind {
         wanted: Option<WantedSpec<Token>>,
     },
     RegexError(regex::Error),
+    UnknownVariable,
+    InvalidSpecifier {
+        options: &'static [&'static str],
+    },
+    VarHasNoSpec(&'static str),
+    VarNeedsSpec {
+        var_name: &'static str,
+        options: &'static [&'static str],
+    },
 }
 
 impl ParseErrorKind {
@@ -285,26 +294,52 @@ impl fmt::Display for ParseErrorKind {
                 wanted: Some(ref wanted),
             } => write!(f, "unexpected EOF, wanted {}", wanted),
             Self::UnexpectedEOF { wanted: None } => write!(f, "unexpected EOF"),
+            Self::UnknownVariable => {
+                // TODO: Update link when docs change!!!
+                write!(f, "Unknown variable name\nthe list of supported variables is at the docs: https://github.com/Alonely0/Voila")
+            },
+            Self::InvalidSpecifier { options } => {
+                write!(
+                    f,
+                    "The specifier selected isn't available for this variable ("
+                )?;
+                format_list(options, f)?;
+                write!(f, ")")
+            },
+            Self::VarHasNoSpec(var_name) => write!(
+                f,
+                "The variable `{var_name}` has no specifier attached to it, maybe you wanted to use `@{var_name}`?",
+                var_name = var_name,
+            ),
+            Self::VarNeedsSpec { var_name, options } => {
+                write!(f, "The variable `{var_name}` needs a specifier. Please use `@{var_name}=<specifier>`, where specifier is one of ")?;
+                format_list(options, f)
+            }
         }
     }
 }
+
+fn format_list<T: fmt::Display>(list: &[T], f: &mut fmt::Formatter) -> fmt::Result {
+    match list.len() {
+        0 => Ok(()),
+        1 => list[0].fmt(f),
+        _ => {
+            let first = &list[0];
+            let last = &list[list.len() - 1];
+            first.fmt(f)?;
+            for x in &list[1..list.len() - 1] {
+                f.write_str(", ")?;
+                x.fmt(f)?;
+            }
+            f.write_str(" or ")?;
+            last.fmt(f)
+        },
+    }
+}
+
 impl<T: fmt::Display> fmt::Display for WantedSpec<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.explicit.len() {
-            0 => Ok(()),
-            1 => self.explicit[0].fmt(f),
-            _ => {
-                let first = &self.explicit[0];
-                let last = &self.explicit[self.explicit.len() - 1];
-                first.fmt(f)?;
-                for x in &self.explicit[1..self.explicit.len() - 1] {
-                    f.write_str(", ")?;
-                    x.fmt(f)?;
-                }
-                f.write_str(" or ")?;
-                last.fmt(f)
-            },
-        }?;
+        format_list(&self.explicit, f)?;
         if let Some(expl) = self.explanation {
             write!(f, " ({})", expl)
         } else {
