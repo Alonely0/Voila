@@ -32,7 +32,10 @@ impl HasSpan for Call<'_> {
 
 /// Represents an argument to the call, with either
 /// a single string like `hello world` or an interpolated
-/// string with variables in it
+/// string with variables in it.
+///
+/// The argument maintains an invariant: Its sequence is
+/// never empty
 ///
 /// # Examples
 ///
@@ -40,79 +43,100 @@ impl HasSpan for Call<'_> {
 /// - `@name is too big`
 /// - `hello world`
 #[derive(Debug)]
-pub enum Arg<'source> {
-    Str(&'source str, Range<usize>),
-    Lookup(Lookup, Range<usize>),
-    Interpolate {
-        lookups: Vec<Lookup>,
-        sequence: Vec<(Option<&'source str>, Range<usize>)>,
-        span: Range<usize>,
-    },
+pub struct Arg<'source> {
+    sequence: Vec<InterpolateComponent<'source>>,
+    span: Range<usize>,
+}
+
+#[derive(Debug)]
+enum InterpolateComponent<'source> {
+    Literal(&'source str),
+    Lookup(Lookup),
 }
 
 impl HasSpan for Arg<'_> {
     fn span(&self) -> &Range<usize> {
-        match self {
-            Self::Str(_, span) | Self::Lookup(_, span) | Self::Interpolate { span, .. } => span,
-        }
+        &self.span
     }
 }
 
+// TODO: refactor this into just the interpolated sequence
 impl<'source> Arg<'source> {
-    fn extend_var(self, var_lookup: Lookup, var_span: &Range<usize>) -> Self {
-        match self {
-            Self::Str(str, str_span) => Self::Interpolate {
-                lookups: vec![var_lookup],
-                span: str_span.start..var_span.end,
-                sequence: vec![(Some(str), str_span), (None, var_span.clone())],
-            },
-            Self::Lookup(lookup, lookup_span) => Self::Interpolate {
-                lookups: vec![lookup, var_lookup],
-                span: lookup_span.start..var_span.end,
-                sequence: vec![(None, lookup_span), (None, var_span.clone())],
-            },
-            Self::Interpolate {
-                mut lookups,
-                mut sequence,
-                span: interp_span,
-            } => {
-                lookups.push(var_lookup);
-                sequence.push((None, var_span.clone()));
-                Self::Interpolate {
-                    lookups,
-                    sequence,
-                    span: interp_span.start..var_span.end,
-                }
-            },
+    /// Construct a literal string argument
+    fn str(string: &'source str, span: Range<usize>) -> Self {
+        Self {
+            sequence: vec![InterpolateComponent::Literal(string)],
+            span,
         }
     }
-    fn extend_str(self, str_src: &'source str, span: &Range<usize>, source: &'source str) -> Self {
-        match self {
-            Self::Str(_, mut first_span) => {
-                // extend the span
-                first_span.end = span.end;
-                Self::Str(&source[first_span.start..first_span.end], first_span)
-            },
-            Self::Lookup(var_name, var_span) => Self::Interpolate {
-                lookups: vec![var_name],
-                span: var_span.start..span.end,
-                sequence: vec![(None, var_span), (Some(str_src), span.clone())],
-            },
-            Self::Interpolate {
-                lookups,
-                mut sequence,
-                span: interp_span,
-            } => {
-                sequence.push((Some(str_src), span.clone()));
-                Self::Interpolate {
-                    lookups,
-                    sequence,
-                    span: interp_span.start..span.end,
-                }
-            },
+    /// Construct a lookup argument
+    fn lookup(lookup: Lookup, span: Range<usize>) -> Self {
+        Self {
+            sequence: vec![InterpolateComponent::Lookup(lookup)],
+            span,
         }
+    }
+    /// Extend the argument with a string literal, returning the next span
+    /// (might be modified)
+    fn extend_str(
+        &mut self,
+        last_span: Range<usize>,
+        mut span: Range<usize>,
+        source: &'source str,
+    ) -> Range<usize> {
+        if matches!(
+            self.sequence.last().unwrap(),
+            InterpolateComponent::Literal(_)
+        ) {
+            // if the last component was a literal,
+            // we can just extend the source
+            span.start = last_span.start;
+
+            // UNSAFE: safe. we already unwrapped
+            let last_ref = self.sequence.last_mut().unwrap();
+            *last_ref = InterpolateComponent::Literal(&source[span.clone()]);
+        } else {
+            // if the last component was a variable,
+            // we will extend the span to accomodate the space in between
+            span.start = last_span.end;
+            self.sequence
+                .push(InterpolateComponent::Literal(&source[span.clone()]));
+        }
+        span
+    }
+
+    /// Extend the argument with a lookup, returning the next span
+    fn extend_lookup(
+        &mut self,
+        lookup: Lookup,
+        last_span: Range<usize>,
+        span: Range<usize>,
+        source: &'source str,
+    ) -> Range<usize> {
+        if matches!(
+            self.sequence.last().unwrap(),
+            InterpolateComponent::Literal(_)
+        ) {
+            // if the last component was a literal, we can
+            // extend its source to accomodate the space in between
+            let last_span = last_span.start..span.start;
+            // UNSAFE: safe, we already unwrapped
+            let last_ref = self.sequence.last_mut().unwrap();
+            *last_ref = InterpolateComponent::Literal(&source[last_span]);
+        } else {
+            // otherwise, we will put the spaces as a literal into the sequence
+            self.sequence.push(InterpolateComponent::Literal(
+                &source[last_span.end..span.start],
+            ));
+        }
+
+        // now we can safely push the lookup, as we already handled the space in between
+        self.sequence.push(InterpolateComponent::Lookup(lookup));
+
+        span
     }
 }
+
 impl<'source> Parse<'source> for Call<'source> {
     fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
         parser.with_context("parsing function call", |parser| {
@@ -129,7 +153,7 @@ impl<'source> Parse<'source> for Call<'source> {
 
             // parsing arguments
             'outer: loop {
-                let mut arg = match parser.expect_one_of_tokens(
+                let (mut arg, mut arg_span) = match parser.expect_one_of_tokens(
                     &[Token::CloseParen, Token::Identifier, Token::Variable],
                     Some("argument to the function call or end the call"),
                 )? {
@@ -139,13 +163,13 @@ impl<'source> Parse<'source> for Call<'source> {
                     Token::Identifier => {
                         let src = parser.current_token_source();
                         let span = parser.current_token_span().clone();
-                        Arg::Str(src, span)
+                        (Arg::str(src, span.clone()), span)
                     },
                     // TODO: check lookups? as they are known at first time
                     Token::Variable => {
                         let src = parser.parse()?;
                         let span = parser.current_token_span().clone();
-                        Arg::Lookup(src, span)
+                        (Arg::lookup(src, span.clone()), span)
                     },
                     _ => unreachable!(),
                 };
@@ -170,14 +194,13 @@ impl<'source> Parse<'source> for Call<'source> {
                         },
                         Token::Variable => {
                             let src = parser.parse()?;
-                            let span = parser.current_token_span();
-                            arg = arg.extend_var(src, &span);
+                            let span = parser.current_token_span().clone();
+                            arg_span = arg.extend_lookup(src, arg_span, span, parser.source());
                             parser.accept_current();
                         },
                         Token::Identifier => {
-                            let src = parser.current_token_source();
-                            let span = parser.current_token_span();
-                            arg = arg.extend_str(src, &span, parser.source());
+                            let span = parser.current_token_span().clone();
+                            arg_span = arg.extend_str(arg_span, span, parser.source());
                             parser.accept_current();
                         },
                         _ => unreachable!(),
