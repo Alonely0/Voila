@@ -23,4 +23,5 @@ mod_use! {
     use expr;
     use cycle;
     use call;
+    use lookup;
 }

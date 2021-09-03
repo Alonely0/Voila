@@ -2,6 +2,8 @@ use std::error::Error;
 use std::fmt;
 use std::ops::Range;
 
+// TODO: display the span correctly with the markers
+
 // TODO: remove the optional span, and just have a `with_source` on `SourceError`,
 // with the start and end `Position`s in the source error struct.
 

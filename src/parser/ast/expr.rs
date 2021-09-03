@@ -1,4 +1,5 @@
 use super::HasSpan;
+use super::Lookup;
 use super::Token;
 use std::ops::Range;
 
@@ -136,7 +137,7 @@ impl Operator {
 pub enum Value<'source> {
     Literal(&'source str, Range<usize>),
     Regex(regex::Regex, Range<usize>),
-    Lookup(&'source str, Range<usize>),
+    Lookup(Lookup, Range<usize>),
 }
 
 impl HasSpan for Value<'_> {
@@ -173,12 +174,12 @@ impl<'source> Parse<'source> for Value<'source> {
                             parser.current_token_span().clone(),
                         )
                     }),
-                    Token::Variable => parser.accept_after(|parser| {
-                        Value::Lookup(
-                            parser.current_token_source(),
-                            parser.current_token_span().clone(),
-                        )
-                    }),
+                    Token::Variable => {
+                        let lookup = parser.parse()?;
+                        let span = parser.current_token_span().clone();
+                        parser.accept_current();
+                        Self::Lookup(lookup, span)
+                    },
                     Token::Regex => {
                         let src = parser.current_token_source();
 
