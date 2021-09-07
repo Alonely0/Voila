@@ -26,7 +26,7 @@ pub mod time;
 impl bytes::ByteConversion for super::Interpreter {
     fn convert(&self, from: u128, to: ByteUnit) -> f64 {
         // get size in format needed, then get str & convert it to chars
-        let str = format!("{}", Byte::from_bytes(from).get_adjusted_unit(to));
+        let str = format!("{s}", s = Byte::from_bytes(from).get_adjusted_unit(to));
         let mut str_chars = str.chars();
 
         // remove size label
@@ -98,36 +98,36 @@ impl Sum for super::Interpreter {
     fn get_sum_of(&self, file: &str, sum: SumTypes) -> String {
         let bytes = self.read_bytes_of_file(file);
         match sum {
-            SumTypes::Md5 => format!("{:x}", md5::compute(bytes)),
+            SumTypes::Md5 => format!("{b:x}", b = md5::compute(bytes)),
             SumTypes::Sha1 => {
                 let mut hasher = Sha1::new();
 
                 hasher.update(bytes);
-                format!("{:x}", hasher.finalize())
+                format!("{sum:x}", sum = hasher.finalize())
             },
             SumTypes::Sha224 => {
                 let mut hasher = Sha224::new();
 
                 hasher.update(bytes);
-                format!("{:x}", hasher.finalize())
+                format!("{sum:x}", sum = hasher.finalize())
             },
             SumTypes::Sha256 => {
                 let mut hasher = Sha256::new();
 
                 hasher.update(bytes);
-                format!("{:x}", hasher.finalize())
+                format!("{sum:x}", sum = hasher.finalize())
             },
             SumTypes::Sha384 => {
                 let mut hasher = Sha384::new();
 
                 hasher.update(bytes);
-                format!("{:x}", hasher.finalize())
+                format!("{sum:x}", sum = hasher.finalize())
             },
             SumTypes::Sha512 => {
                 let mut hasher = Sha512::new();
 
                 hasher.update(bytes);
-                format!("{:x}", hasher.finalize())
+                format!("{sum:x}", sum = hasher.finalize())
             },
         }
     }
@@ -162,7 +162,7 @@ impl time::Timestamps for super::Interpreter {
         let naive = unix + chrono_duration;
 
         // remove hour
-        let str = format!("{:?}", naive);
+        let str = format!("{naive:?}");
         let mut str_chars = str.chars();
         for _ in 0..19 {
             str_chars.next_back();
@@ -176,7 +176,7 @@ impl time::Timestamps for super::Interpreter {
         let naive = unix + chrono_duration;
 
         // remove date & ms
-        let str = format!("{:?}", naive);
+        let str = format!("{naive:?}");
         let mut str_chars = str.chars();
         for _ in 0..10 {
             str_chars.next();

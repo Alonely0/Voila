@@ -58,7 +58,7 @@ impl Cycles for super::Parser {
                 }
             }
         }
-        println_on_debug!("  Cycles {:#?}", &self.cycles);
+        println_on_debug!("  Cycles {cycles:#?}", cycles = &self.cycles);
         self.cycles.to_owned()
     }
 }

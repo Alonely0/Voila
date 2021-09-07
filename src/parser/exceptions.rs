@@ -6,7 +6,7 @@ pub trait Exceptions {
 
 impl Exceptions for super::Parser {
     fn raise_parse_error(&self, err_type: &str, msg: String) -> ! {
-        eprintln!("PARSE ERROR:\n   {}: {msg}", err_type.to_ascii_uppercase());
+        eprintln!("PARSE ERROR:\n   {et}: {msg}", et = err_type.to_ascii_uppercase());
         process::exit(1)
     }
 }

@@ -68,7 +68,7 @@ impl Parser {
             cycles,
         };
 
-        println_on_debug!("  {:#?}", &abstract_syntax_tree);
+        println_on_debug!("  {abstract_syntax_tree:#?}");
         abstract_syntax_tree
     }
 }

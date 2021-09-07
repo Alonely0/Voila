@@ -20,8 +20,8 @@ pub fn file_generator(interpreter: super::super::Interpreter) -> impl Stream<Ite
         interpreter.raise_error(
             "INVALID DIRECTORY",
             format!(
-                "{:?} does not exist or is a file.",
-                &interpreter.__directory__.as_os_str()
+                "{dir:?} does not exist or is a file.",
+                dir = &interpreter.__directory__.as_os_str()
             ),
         )
     }

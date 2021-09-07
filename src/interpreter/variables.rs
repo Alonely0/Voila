@@ -47,23 +47,23 @@ impl Variables for super::Interpreter {
             },
             "size=tb" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::TB)),
+                content: format!("{s}", s = self.convert(metadata.len() as u128, ByteUnit::TB)),
             }),
             "size=gb" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::GB)),
+                content: format!("{s}", s = self.convert(metadata.len() as u128, ByteUnit::GB)),
             }),
             "size=mb" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::MB)),
+                content: format!("{s}", s = self.convert(metadata.len() as u128, ByteUnit::MB)),
             }),
             "size=kb" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: format!("{}", self.convert(metadata.len() as u128, ByteUnit::KB)),
+                content: format!("{s}", s = self.convert(metadata.len() as u128, ByteUnit::KB)),
             }),
             "size=bs" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: format!("{}", metadata.len()),
+                content: format!("{s}", s = metadata.len()),
             }),
             "empty" => {
                 Ok(Literal {
@@ -79,7 +79,7 @@ impl Variables for super::Interpreter {
             },
             "readonly" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: format!("{}", metadata.permissions().readonly()),
+                content: format!("{ro}", ro = metadata.permissions().readonly()),
             }),
             "elf" => {
                 // create an empty non-growable buffer
@@ -90,7 +90,7 @@ impl Variables for super::Interpreter {
                     content: if let Err(err) =
                         fs::File::open(&self.__file__).and_then(|mut f| f.read(&mut buffer))
                     {
-                        format!("error reading file {}: {}", self.__file__, err)
+                        format!("error reading file {f}: {err}", f = self.__file__)
                     } else {
                         match buffer {
                             // thats the byte sequence ELF files must start with
@@ -109,7 +109,7 @@ impl Variables for super::Interpreter {
                     content: if let Err(err) =
                         fs::File::open(&self.__file__).and_then(|mut f| f.read_to_end(&mut buffer))
                     {
-                        format!("error reading file {}: {}", self.__file__, err)
+                        format!("error reading file {f} {err}", f = self.__file__)
                     } else {
                         match buffer[buffer.len() - 1] {
                             // CR or LF
@@ -150,12 +150,12 @@ impl Variables for super::Interpreter {
                         // Ensures *nix specific metadata is not included on non-*nix systems
                         #[cfg(unix)]
                         {
-                            format!("{}", metadata.uid())
+                            format!("{uid}", uid = metadata.uid())
                         }
 
                         #[cfg(not(unix))]
                         {
-                            format!("ownerID is an Unix-Only variable!")
+                            String::from("ownerID is an Unix-Only variable!")
                         }
                     },
                 })
@@ -223,7 +223,7 @@ impl Variables for super::Interpreter {
             _ => {
                 let kind = LiteralKind::Str;
                 let content = if var.kind == LiteralKind::Var {
-                    format!("@{}", &var.content)
+                    format!("@{txt}", txt = &var.content)
                 } else {
                     var.content.clone()
                 };

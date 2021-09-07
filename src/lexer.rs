@@ -17,7 +17,7 @@ pub fn lex(source: &str) -> Vec<Token> {
     // convert logos' tokens to our own struct, that let us parse
     // the tokens easier and implement our own display formatting
     while let Some(t_type) = tokens.next() {
-        let mut t_type_str = format!("{:?}", t_type);
+        let mut t_type_str = format!("{tt:?}", tt = t_type);
         // prepare token values
         let mut t_value: TokContent = TokContent::new_string(tokens.slice().to_string());
         // Get specific val on some Literals
@@ -43,7 +43,7 @@ pub fn lex(source: &str) -> Vec<Token> {
         // create a struct with the token
         let parsable_token = Token::new(t_type_str, t_value);
 
-        println_on_debug!("  {}", &parsable_token);
+        println_on_debug!("  {parsable_token}");
         parsable_tokens.push(parsable_token);
     }
     println_on_debug!("Lexer ended\n");
@@ -102,7 +102,7 @@ pub enum Tokens {
                 args.push(
                     Literal::from_token(
                         &Token::new(
-                            format!("{:?}", tok_type),
+                            format!("{tt:?}", tt = tok_type),
                             TokContent::new_string(tok_value)
                         )
                     ).unwrap()

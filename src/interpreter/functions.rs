@@ -78,7 +78,7 @@ impl Functions for super::Interpreter {
         } else if let Err(err) = fs::write(self.trim_spaces(&args[0]), self.trim_spaces(&args[1])) {
             self.raise_error(
                 "ERROR CREATING FILE",
-                format!("echo {} > {}': {err}", args[1], args[0]),
+                format!("echo {a1} > {a0}': {err}", a1 = args[1], a0 = args[0]),
             );
         }
     }
@@ -160,7 +160,7 @@ impl Functions for super::Interpreter {
                     {
                         self.raise_error(
                             "ERROR WHILE COPYING FILE",
-                            format!("An error occurred:\n'cp {} {}': {err}", args[0], args[1]),
+                            format!("An error occurred:\n'cp {a0} {a1}': {err}", a0 = args[0], a1 = args[1]),
                         );
                     };
                 } else if let Err(err) = dir::copy(
@@ -171,8 +171,8 @@ impl Functions for super::Interpreter {
                     self.raise_error(
                         "ERROR WHILE COPYING DIR",
                         format!(
-                            "An error occurred:\n'cp -r --parents --copy-contents {} {}': {err}",
-                            args[0], args[1]
+                            "An error occurred:\n'cp -r --parents --copy-contents {a0} {a1}': {err}",
+                            a0 = args[0], a1 = args[1]
                         ),
                     );
                 };
@@ -184,7 +184,7 @@ impl Functions for super::Interpreter {
         if args.len() != 2 {
             self.raise_error(
                 "NOT ENOUGH ARGUMENTS",
-                format!("Expected 2 arguments, found {}", args.len()),
+                format!("Expected 2 arguments, found {len}", len = args.len()),
             )
         }
 
@@ -208,7 +208,7 @@ impl Functions for super::Interpreter {
         if args.len() != 2 {
             self.raise_error(
                 "NOT ENOUGH ARGUMENTS",
-                format!("Expected 2 arguments, found {}", args.len()),
+                format!("Expected 2 arguments, found {len}", len = args.len()),
             )
         }
 

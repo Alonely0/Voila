@@ -20,7 +20,7 @@ impl Conditionals for super::Parser {
             }
         }
 
-        println_on_debug!("  Conditionals {:#?}", &conditionals);
+        println_on_debug!("  Conditionals {conditionals:#?}");
         conditionals
     }
     fn parse_next_conditional(&mut self) -> Conditional {
@@ -51,8 +51,8 @@ impl Conditionals for super::Parser {
                         self.raise_parse_error(
                             "UNEXPECTED TOKEN",
                             format!(
-                                "Expected a Variable, an Identifier or a Regex, got \"{}\"",
-                                content
+                                "Expected a Variable, an Identifier or a Regex, got \"{token}\"",
+                                token = content
                             ),
                         );
                     },
@@ -67,7 +67,7 @@ impl Conditionals for super::Parser {
                     Err(_) => {
                         self.raise_parse_error(
                             "UNEXPECTED TOKEN",
-                            format!("Expected an operator, got {}", token.content),
+                            format!("Expected an operator, got {token}", token = token.content),
                         );
                     },
                     Ok(CondOperator::Re) | Ok(CondOperator::Rn) => {
@@ -75,14 +75,14 @@ impl Conditionals for super::Parser {
                             self.raise_parse_error(
                                 "UNEXPECTED TOKEN",
                                  format!(
-                                     "Expected a different operator, {} is only for regular expressions. Consider using other operator, like == or !=", token.content))
+                                     "Expected a different operator, {op} is only for regular expressions. Consider using other operator, like == or !=", op = token.content))
                         }
                         Some(op.unwrap())
                     },
                     _ => {
                         if next_token.tok_type == "Rgx" || last_token.tok_type == "Rgx" {
                             self.raise_parse_error("UNEXPECTED TOKEN", format!(
-                                "Expected a different operator, {} is not for regular expressions. Consider using other operator, like ~= or ~!", token.content
+                                "Expected a different operator, {op} is not for regular expressions. Consider using other operator, like ~= or ~!", op = token.content
                             ))
                         }
                         Some(op.unwrap())
@@ -99,8 +99,8 @@ impl Conditionals for super::Parser {
                         self.raise_parse_error(
                             "UNEXPECTED TOKEN",
                             format!(
-                                "Expected a Variable, an Identifier or a Regex, got \"{}\"",
-                                content
+                                "Expected a Variable, an Identifier or a Regex, got \"{token}\"",
+                                token = content
                             ),
                         );
                     },
@@ -115,7 +115,7 @@ impl Conditionals for super::Parser {
                     Err(_) => {
                         self.raise_parse_error(
                             "UNEXPECTED SYMBOL",
-                            format!("Expected &&, || or {{, got {}", token.content),
+                            format!("Expected &&, || or {{, got {rela}", rela = token.content),
                         );
                     },
                     _ => rela.unwrap(),
@@ -132,7 +132,7 @@ impl Conditionals for super::Parser {
         }
         // set position the the start of the next conditional
         self.position = j + 1;
-        println_on_debug!("  position, {}", self.position);
+        println_on_debug!("  position, {pos}", pos = self.position);
 
         // return conditional
         Conditional {

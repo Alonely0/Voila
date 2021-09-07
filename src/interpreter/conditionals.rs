@@ -20,7 +20,7 @@ impl Conditionals for super::Interpreter {
         for i in 0..self.__ast__.conditionals.len() {
             // get conditional
             let conditional: &Conditional = &self.__ast__.conditionals[i];
-            println_on_debug!("    {}", &conditional);
+            println_on_debug!("    {conditional}");
 
             // is there a var? ok, give the value
             // no? return me the original object
@@ -48,28 +48,28 @@ impl Conditionals for super::Interpreter {
             full_conditional = if i == 0 {
                 // if is the first conditional, the format is `VAL RELA?`
                 match conditional.next_conditional_relationship {
-                    Some(CondRelationship::And) => format!("{} &&", cond_result),
-                    Some(CondRelationship::Any) => format!("{} ||", cond_result),
-                    _ => format!("{}", cond_result),
+                    Some(CondRelationship::And) => format!("{cond_result} &&"),
+                    Some(CondRelationship::Any) => format!("{cond_result} ||"),
+                    _ => format!("{cond_result}"),
                 }
             } else {
                 // if it has another conditional behind, the format is
                 // `... VAL RELA?`
                 match conditional.next_conditional_relationship {
                     Some(CondRelationship::And) => {
-                        format!("{} {} &&", &full_conditional, cond_result)
+                        format!("{full_conditional} {cond_result} &&")
                     },
                     Some(CondRelationship::Any) => {
-                        format!("{} {} ||", &full_conditional, cond_result)
+                        format!("{full_conditional} {cond_result} ||")
                     },
-                    None => format!("{} {}", &full_conditional, cond_result),
+                    None => format!("{full_conditional} {cond_result}"),
                 }
             };
         }
         // get final result
         let conditional_result = self.eval_relationships(&full_conditional);
-        println_on_debug!("    Conditional Evaluated [ {} ]", &full_conditional);
-        println_on_debug!("    Result Evaluated [ {} ]", &conditional_result);
+        println_on_debug!("    Conditional Evaluated [ {full_conditional} ]");
+        println_on_debug!("    Result Evaluated [ {conditional_result} ]");
 
         conditional_result
     }

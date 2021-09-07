@@ -57,7 +57,7 @@ impl Interpreter {
             while let Some(path) = file_generator.next().await {
                 // set current file
                 self.__file__ = path;
-                println_on_debug!("  File [ {} ]", &self.__file__);
+                println_on_debug!("  File [ {f} ]", f = &self.__file__);
 
                 // get cycle
                 let cycle = self.__ast__.cycles[i].to_owned();
