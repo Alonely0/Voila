@@ -1,3 +1,3 @@
 pub trait RegExp {
-    fn matches(&self, input: String, regex: String) -> bool;
+    fn matches(&self, input: &str, regex: &str) -> bool;
 }

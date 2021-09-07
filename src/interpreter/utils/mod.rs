@@ -79,12 +79,12 @@ impl path::Path for super::Interpreter {
 }
 
 impl regexp::RegExp for super::Interpreter {
-    fn matches(&self, input: String, regexp: String) -> bool {
+    fn matches(&self, input: &str, regexp: &str) -> bool {
         // create a new regex struct from the regex string
-        let regex = Regex::new(&regexp).unwrap();
+        let regex = Regex::new(regexp).unwrap();
 
         // return an eval of the regex with the string
-        regex.is_match(&input)
+        regex.is_match(input)
     }
 }
 
@@ -168,7 +168,6 @@ impl time::Timestamps for super::Interpreter {
         for _ in 0..12 {
             str_chars.next();
         }
-
         // remove ms
         for _ in 0..10 {
             str_chars.next_back();

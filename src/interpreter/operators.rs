@@ -41,25 +41,12 @@ impl Operators for super::Interpreter {
     }
 
     fn re(&self, x: &Literal, y: &Literal) -> bool {
-        // define variables
-        let rgx: String;
-        let str: String;
-
         // as the regexp can go in any of the sides, we must know
-        // in which one it is
+        // in which one it is before evaling them
         match x.kind {
-            LiteralKind::Rgx => {
-                rgx = x.content.clone();
-                str = y.content.clone();
-            },
-            _ => {
-                rgx = y.content.clone();
-                str = x.content.clone();
-            },
-        };
-
-        // eval the regexp with the string
-        self.matches(str, rgx)
+            LiteralKind::Rgx => self.matches(&x.content, &y.content),
+            _ => self.matches(&y.content, &x.content),
+        }
     }
 
     fn rn(&self, x: &Literal, y: &Literal) -> bool {

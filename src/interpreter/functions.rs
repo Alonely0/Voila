@@ -23,7 +23,7 @@ pub trait Functions {
     // for making something that a function can deal with more easily.
     // Then, the best is to create directly a vector of strings, because
     // we do not care anymore about the type of the literal.
-    fn supervec_literals_to_args(&self, supervec: Vec<Vec<Literal>>) -> Args;
+    fn supervec_literals_to_args(&self, supervec: &[Vec<Literal>]) -> Args;
 
     // Functions definitions
     fn r#print(&self, args: Args);
@@ -46,19 +46,17 @@ impl Functions for super::Interpreter {
     // for making something that a function can deal with more easily.
     // Then, the best is to create directly a vector of strings, because
     // we do not care anymore about the type of the literal.
-    fn supervec_literals_to_args(&self, supervec: Vec<Vec<Literal>>) -> Vec<String> {
-        let mut final_args: Args = vec![];
-        for vec_of_literals in supervec {
-            let mut literals_str = String::from("");
-            for literal in vec_of_literals {
-                let str: String = self.get_var_if_any(&literal).unwrap().content.to_owned();
-
-                literals_str = format!("{literals_str}{str}")
-            }
-            final_args.push(literals_str.to_owned());
-        }
-
-        final_args
+    fn supervec_literals_to_args(&self, supervec: &[Vec<Literal>]) -> Args {
+        supervec
+            .iter()
+            .map(|literals| {
+                literals
+                    .iter()
+                    .map(|literal| self.get_var_if_any(literal).unwrap().content)
+                    .collect::<Vec<String>>()
+                    .join("")
+            })
+            .collect()
     }
 
     // Functions definitions
