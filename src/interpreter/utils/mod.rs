@@ -132,11 +132,22 @@ impl Sum for super::Interpreter {
         }
     }
     fn read_bytes_of_file(&self, path: &str) -> Vec<u8> {
+        // initialize buffer and block
         let mut buffer = Vec::new();
+        let mut block = [0u8; 8192];
         let file = File::open(path);
         if let Ok(f) = file {
             let mut reader = io::BufReader::new(f);
-            reader.read_to_end(&mut buffer).unwrap();
+            while let Ok(read) = reader.read(&mut block) {
+                // stop when it finishes reading
+                if read == 0 { break };
+
+                // extend buffer
+                buffer.extend_from_slice(&block);
+
+                // empty block
+                block = [0u8; 8192];
+            }
         }
         buffer
     }
