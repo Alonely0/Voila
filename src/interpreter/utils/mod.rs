@@ -175,16 +175,15 @@ impl time::Timestamps for super::Interpreter {
         let unix = chrono::naive::NaiveDateTime::from_timestamp(0, 0);
         let naive = unix + chrono_duration;
 
-        // remove date
+        // remove date & ms
         let str = format!("{:?}", naive);
         let mut str_chars = str.chars();
-        for _ in 0..12 {
-            str_chars.next();
-        }
-        // remove ms
         for _ in 0..10 {
+            str_chars.next();
             str_chars.next_back();
         }
+        str_chars.next();
+        str_chars.next();
 
         str_chars.as_str().to_string()
     }
