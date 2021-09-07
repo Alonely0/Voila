@@ -28,7 +28,6 @@ pub enum ParseErrorKind {
         var_name: &'static str,
         options: &'static [&'static str],
     },
-    UnknownFunction,
 }
 
 impl ParseErrorKind {
@@ -316,8 +315,6 @@ impl fmt::Display for ParseErrorKind {
                 write!(f, "The variable `{var_name}` needs a specifier. Please use `@{var_name}=<specifier>`, where specifier is one of ")?;
                 format_list(options, f)
             }
-            // TODO: update link when docs change!
-            Self::UnknownFunction => write!(f, "Unknown function name\nthe list of supported functions is at the docs: https://github.com/Alonely0/Voila"),
         }
     }
 }
