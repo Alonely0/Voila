@@ -140,7 +140,9 @@ impl Sum for super::Interpreter {
             let mut reader = io::BufReader::new(f);
             while let Ok(read) = reader.read(&mut block) {
                 // stop when it finishes reading
-                if read == 0 { break };
+                if read == 0 {
+                    break;
+                };
 
                 // extend buffer
                 buffer.extend_from_slice(&block);
