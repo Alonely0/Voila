@@ -160,7 +160,11 @@ impl Functions for super::Interpreter {
                     {
                         self.raise_error(
                             "ERROR WHILE COPYING FILE",
-                            format!("An error occurred:\n'cp {a0} {a1}': {err}", a0 = args[0], a1 = args[1]),
+                            format!(
+                                "An error occurred:\n'cp {a0} {a1}': {err}",
+                                a0 = args[0],
+                                a1 = args[1]
+                            ),
                         );
                     };
                 } else if let Err(err) = dir::copy(

@@ -47,19 +47,31 @@ impl Variables for super::Interpreter {
             },
             "size=tb" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: format!("{s}", s = self.convert(metadata.len() as u128, ByteUnit::TB)),
+                content: format!(
+                    "{s}",
+                    s = self.convert(metadata.len() as u128, ByteUnit::TB)
+                ),
             }),
             "size=gb" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: format!("{s}", s = self.convert(metadata.len() as u128, ByteUnit::GB)),
+                content: format!(
+                    "{s}",
+                    s = self.convert(metadata.len() as u128, ByteUnit::GB)
+                ),
             }),
             "size=mb" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: format!("{s}", s = self.convert(metadata.len() as u128, ByteUnit::MB)),
+                content: format!(
+                    "{s}",
+                    s = self.convert(metadata.len() as u128, ByteUnit::MB)
+                ),
             }),
             "size=kb" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: format!("{s}", s = self.convert(metadata.len() as u128, ByteUnit::KB)),
+                content: format!(
+                    "{s}",
+                    s = self.convert(metadata.len() as u128, ByteUnit::KB)
+                ),
             }),
             "size=bs" => Ok(Literal {
                 kind: LiteralKind::Str,
