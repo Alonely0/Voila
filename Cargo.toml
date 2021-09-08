@@ -1,5 +1,3 @@
-cargo-features = ["edition2021"]
-
 [package]
 name = "voila"
 description = "A tool for doing complex operations to files and directories."
