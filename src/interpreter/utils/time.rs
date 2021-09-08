@@ -1,6 +1,10 @@
 use core::time::Duration;
 
+pub enum DateTime {
+    Date,
+    Time,
+}
+
 pub trait Timestamps {
-    fn get_date(&self, timestamp: Duration) -> String;
-    fn get_hour(&self, timestamp: Duration) -> String;
+    fn convert_timestamp(&self, timestamp: Duration, to: DateTime) -> String;
 }

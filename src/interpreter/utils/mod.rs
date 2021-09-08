@@ -2,6 +2,7 @@ use super::exceptions::Exceptions;
 use byte_unit::{Byte, ByteUnit};
 pub use bytes::ByteConversion;
 use core::time::Duration;
+pub use path::Path;
 use path_absolutize::*;
 use regex::Regex;
 use sha1::{Digest, Sha1};
@@ -10,11 +11,11 @@ use std::fs;
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
-use std::path::Path;
+use std::path::Path as stdPath;
 pub use string::Str;
 pub use sum::Sum;
 pub use sum::SumTypes;
-pub use time::Timestamps;
+pub use time::*;
 
 pub mod bytes;
 pub mod path;
@@ -24,7 +25,7 @@ pub mod sum;
 pub mod time;
 
 impl bytes::ByteConversion for super::Interpreter {
-    fn convert(&self, from: u128, to: ByteUnit) -> f64 {
+    fn convert_bytes(&self, from: u128, to: ByteUnit) -> f64 {
         // get size in format needed, then get str & convert it to chars
         let str = format!("{s}", s = Byte::from_bytes(from).get_adjusted_unit(to));
         let mut str_chars = str.chars();
@@ -47,12 +48,12 @@ impl path::Path for super::Interpreter {
 
         // create a new path struct with the
         // absolute path and get if exists
-        Path::new(&path).exists()
+        stdPath::new(&path).exists()
     }
 
     fn absolutize(&self, input: &str) -> String {
         // ge the absolute path
-        let p = Path::new(&input).absolutize().unwrap();
+        let p = stdPath::new(&input).absolutize().unwrap();
 
         // get the &str
         // (i think i cannot get the String directly)
@@ -156,35 +157,16 @@ impl Sum for super::Interpreter {
 }
 
 impl time::Timestamps for super::Interpreter {
-    fn get_date(&self, timestamp: Duration) -> String {
+    fn convert_timestamp(&self, timestamp: Duration, to: time::DateTime) -> String {
+        // timestamp to datetime
         let chrono_duration = chrono::Duration::from_std(timestamp).unwrap();
         let unix = chrono::naive::NaiveDateTime::from_timestamp(0, 0);
-        let naive = unix + chrono_duration;
+        let datetime = unix + chrono_duration;
 
-        // remove hour
-        let str = format!("{naive:?}");
-        let mut str_chars = str.chars();
-        for _ in 0..19 {
-            str_chars.next_back();
+        // get time
+        match to {
+            DateTime::Date => datetime.date().to_string(),
+            DateTime::Time => datetime.time().format("%H:%M:%S").to_string(),
         }
-
-        str_chars.as_str().to_string()
-    }
-    fn get_hour(&self, timestamp: Duration) -> String {
-        let chrono_duration = chrono::Duration::from_std(timestamp).unwrap();
-        let unix = chrono::naive::NaiveDateTime::from_timestamp(0, 0);
-        let naive = unix + chrono_duration;
-
-        // remove date & ms
-        let str = format!("{naive:?}");
-        let mut str_chars = str.chars();
-        for _ in 0..10 {
-            str_chars.next();
-            str_chars.next_back();
-        }
-        str_chars.next();
-        str_chars.next();
-
-        str_chars.as_str().to_string()
     }
 }

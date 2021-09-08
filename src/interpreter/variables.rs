@@ -1,4 +1,4 @@
-use super::utils::{path::Path, ByteConversion, Str, Sum, SumTypes, Timestamps};
+use super::utils::*;
 use super::{Literal, LiteralKind};
 use byte_unit::ByteUnit;
 use std::ffi::OsString;
@@ -47,19 +47,31 @@ impl Variables for super::Interpreter {
             },
             "size=tb" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: format!("{s}", s = self.convert(metadata.len() as u128, ByteUnit::TB)),
+                content: format!(
+                    "{s}",
+                    s = self.convert_bytes(metadata.len() as u128, ByteUnit::TB)
+                ),
             }),
             "size=gb" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: format!("{s}", s = self.convert(metadata.len() as u128, ByteUnit::GB)),
+                content: format!(
+                    "{s}",
+                    s = self.convert_bytes(metadata.len() as u128, ByteUnit::GB)
+                ),
             }),
             "size=mb" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: format!("{s}", s = self.convert(metadata.len() as u128, ByteUnit::MB)),
+                content: format!(
+                    "{s}",
+                    s = self.convert_bytes(metadata.len() as u128, ByteUnit::MB)
+                ),
             }),
             "size=kb" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: format!("{s}", s = self.convert(metadata.len() as u128, ByteUnit::KB)),
+                content: format!(
+                    "{s}",
+                    s = self.convert_bytes(metadata.len() as u128, ByteUnit::KB)
+                ),
             }),
             "size=bs" => Ok(Literal {
                 kind: LiteralKind::Str,
@@ -162,62 +174,68 @@ impl Variables for super::Interpreter {
             },
             "creation=date" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: self.get_date(
+                content: self.convert_timestamp(
                     metadata
                         .created()
                         .unwrap()
                         .duration_since(SystemTime::UNIX_EPOCH)
                         .unwrap(),
+                    DateTime::Date,
                 ),
             }),
             "creation=hour" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: self.get_hour(
+                content: self.convert_timestamp(
                     metadata
                         .created()
                         .unwrap()
                         .duration_since(SystemTime::UNIX_EPOCH)
                         .unwrap(),
+                    DateTime::Time,
                 ),
             }),
             "lastChange=date" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: self.get_date(
+                content: self.convert_timestamp(
                     metadata
                         .modified()
                         .unwrap()
                         .duration_since(SystemTime::UNIX_EPOCH)
                         .unwrap(),
+                    DateTime::Date,
                 ),
             }),
             "lastChange=hour" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: self.get_hour(
+                content: self.convert_timestamp(
                     metadata
                         .modified()
                         .unwrap()
                         .duration_since(SystemTime::UNIX_EPOCH)
                         .unwrap(),
+                    DateTime::Time,
                 ),
             }),
             "lastAccess=date" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: self.get_date(
+                content: self.convert_timestamp(
                     metadata
                         .accessed()
                         .unwrap()
                         .duration_since(SystemTime::UNIX_EPOCH)
                         .unwrap(),
+                    DateTime::Date,
                 ),
             }),
             "lastAccess=hour" => Ok(Literal {
                 kind: LiteralKind::Str,
-                content: self.get_hour(
+                content: self.convert_timestamp(
                     metadata
                         .accessed()
                         .unwrap()
                         .duration_since(SystemTime::UNIX_EPOCH)
                         .unwrap(),
+                    DateTime::Time,
                 ),
             }),
             _ => {
