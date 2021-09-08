@@ -15,9 +15,9 @@ use std::ops::Range;
 /// ```
 #[derive(Debug)]
 pub struct Target<'source> {
-    condition: Option<Expr<'source>>,
-    cycles: Vec<Cycle<'source>>,
-    span: Range<usize>,
+    pub condition: Option<Expr<'source>>,
+    pub cycles: Vec<Cycle<'source>>,
+    pub span: Range<usize>,
 }
 
 impl HasSpan for Target<'_> {
@@ -77,4 +77,27 @@ impl<'source> Parse<'source> for Target<'source> {
             Ok(res)
         })
     }
+}
+
+use crate::interpreter;
+use std::sync::{mpsc, Arc, Mutex};
+pub fn run_target(
+    target: &Target,
+    cache: Arc<Mutex<interpreter::Cache>>,
+    pool: &rayon::ThreadPool,
+    tx: mpsc::Sender<interpreter::ErrorKind>,
+) -> Result<(), interpreter::ErrorKind> {
+    let ok = target
+        .condition
+        .as_ref()
+        .map_or(Ok(true.into()), |expr| cache.lock().unwrap().resolve(expr))?
+        .cast_to_bool()?;
+    if !ok {
+        return Ok(());
+    }
+
+    for cycle in &target.cycles {
+        super::run_cycle(cycle, cache.clone(), pool, tx.clone());
+    }
+    Ok(())
 }

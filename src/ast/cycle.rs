@@ -65,3 +65,25 @@ impl<'source> Parse<'source> for Cycle<'source> {
         })
     }
 }
+
+use crate::interpreter;
+use std::sync::{mpsc, Arc, Mutex};
+
+pub fn run_cycle(
+    cycle: &Cycle,
+    cache: Arc<Mutex<interpreter::Cache>>,
+    pool: &rayon::ThreadPool,
+    tx: mpsc::Sender<interpreter::ErrorKind>,
+) {
+    pool.scope(move |s| {
+        for call in &cycle.calls {
+            let cache = cache.clone();
+            let tx = tx.clone();
+            s.spawn(move |_| {
+                if let Err(e) = super::run_call(call, cache) {
+                    tx.send(e).unwrap();
+                }
+            })
+        }
+    });
+}

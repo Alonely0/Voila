@@ -4,6 +4,9 @@ use std::error::Error;
 use std::fmt;
 use std::ops::Range;
 
+// TODO: add support to quote variable names into literals, like
+// `'@name'` is `Value::Literal(@name)`
+
 pub type ParseError = SourceError<ParseErrorKind>;
 pub type ParseRes<T> = Result<T, ParseError>;
 

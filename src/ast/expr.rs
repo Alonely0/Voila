@@ -181,12 +181,19 @@ impl<'source> Parse<'source> for Value<'source> {
                         Self::Lookup(lookup, span)
                     },
                     Token::Regex => {
-                        let src = parser.current_token_source();
+                        let src = {
+                            let s = parser.current_token_source();
+                            &s[1..s.len() - 1]
+                        };
 
                         let regex = regex::Regex::new(src)
                             .map_err(|err| parser.error(ParseErrorKind::RegexError(err)))?;
 
-                        let value = Value::Regex(regex, parser.current_token_span().clone());
+                        let mut span = parser.current_token_span().clone();
+                        span.start = span.start.saturating_sub(1);
+                        span.end += 1;
+
+                        let value = Value::Regex(regex, span);
                         parser.accept_current();
                         value
                     },
@@ -226,4 +233,65 @@ fn parse_expr<'source>(
         };
     }
     Ok(lhs)
+}
+
+use crate::interpreter::{Cache, ErrorKind, ExprResult, Resolve};
+impl Resolve for Expr<'_> {
+    fn resolve(&self, cache: &mut Cache) -> Result<ExprResult, ErrorKind> {
+        match self {
+            Self::Value(v) => cache.resolve(v),
+            Self::Binary {
+                operator, lhs, rhs, ..
+            } => {
+                let lhs = cache.resolve(lhs.as_ref())?;
+                let rhs = cache.resolve(rhs.as_ref())?;
+                Ok(ExprResult::from(match operator {
+                    Operator::Equals => lhs.cast_to_string()? == rhs.cast_to_string()?,
+                    Operator::GreaterEqual => lhs.cast_to_number()? >= rhs.cast_to_number()?,
+                    Operator::GreaterThan => lhs.cast_to_number()? > rhs.cast_to_number()?,
+                    Operator::LessEqual => lhs.cast_to_number()? <= rhs.cast_to_number()?,
+                    Operator::LessThan => lhs.cast_to_number()? < rhs.cast_to_number()?,
+                    Operator::NEquals => lhs.cast_to_string()? != rhs.cast_to_string()?,
+                    Operator::Matches => {
+                        if let Some(patt) = lhs.as_regex() {
+                            patt.is_match(&rhs.cast_to_string()?)
+                        } else if let Some(patt) = rhs.as_regex() {
+                            patt.is_match(&lhs.cast_to_string()?)
+                        } else {
+                            // TODO: throw a cast error?
+                            // current approach: use both as strings and do a equal match
+                            lhs.cast_to_string()? == rhs.cast_to_string()?
+                        }
+                    },
+                    Operator::NMatches => {
+                        if let Some(patt) = lhs.as_regex() {
+                            patt.is_match(&rhs.cast_to_string()?)
+                        } else if let Some(patt) = rhs.as_regex() {
+                            patt.is_match(&lhs.cast_to_string()?)
+                        } else {
+                            // same as above
+                            lhs.cast_to_string()? != rhs.cast_to_string()?
+                        }
+                    },
+                    // note: using the single ones so a shortcut is not generated,
+                    // and the casts are made first. This won't be relevant when types
+                    // are validated prior to runtime.
+                    Operator::LogicAnd => lhs.cast_to_bool()? & rhs.cast_to_bool()?,
+                    Operator::LogicOr => lhs.cast_to_bool()? | rhs.cast_to_bool()?,
+                }))
+            },
+        }
+    }
+}
+impl Resolve for Value<'_> {
+    fn resolve(&self, cache: &mut Cache) -> Result<ExprResult, ErrorKind> {
+        match self {
+            Self::Literal(str, _) => Ok((*str).into()),
+            Self::Lookup(lookup, _) => cache.resolve(lookup),
+            // I don't like this... maybe I should use a different approach with expressions
+            // and operators, through the validator (make the operator part of the enum, like
+            // `LogicOr(expr, expr)`)
+            Self::Regex(reg, _) => Ok(ExprResult::Regex(reg.clone())),
+        }
+    }
 }
