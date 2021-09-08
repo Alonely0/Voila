@@ -346,12 +346,6 @@ impl<'source> Parse<'source> for Call<'source> {
                             break;
                         },
                         Token::Variable => {
-                            let src = parser.parse()?;
-                            let span = parser.current_token_span().clone();
-                            arg_span = arg.extend_lookup(src, arg_span, span, parser.source());
-                            parser.accept_current();
-                        },
-                        Token::Identifier => {
                             let span = parser.current_token_span().clone();
                             arg_span = match parser.parse() {
                                 Ok(lookup) => {
@@ -362,7 +356,11 @@ impl<'source> Parse<'source> for Call<'source> {
                                 },
                                 Err(e) => return Err(e),
                             };
-                            // arg_span = arg.extend_str(arg_span, span, parser.source());
+                            parser.accept_current();
+                        },
+                        Token::Identifier => {
+                            let span = parser.current_token_span().clone();
+                            arg_span = arg.extend_str(arg_span, span, parser.source());
                             parser.accept_current();
                         },
                         _ => unreachable!(),
