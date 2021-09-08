@@ -3,9 +3,11 @@ use std::fmt;
 
 #[derive(Debug, Logos, Clone, Copy, PartialEq, Eq)]
 pub enum Token {
-    #[regex(r"[ \t\n\f]", logos::skip, priority = 2)]
-    #[error]
-    Unidentified,
+    #[regex(r#"#[\-a-zA-Z^\$.*\[\](){}?@!%&*\-_=\+'";:,|\\]+#"#)]
+    Regex,
+
+    #[regex(r"[^{}(),\s]+")]
+    Identifier,
 
     #[regex(r"@[A-Za-z0-9]+(?:=[A-Za-z0-9]+)?")]
     Variable,
@@ -59,11 +61,9 @@ pub enum Token {
     #[token("||")]
     LogicOr,
 
-    #[regex(r"[A-Za-z0-9.\[\]\-><=:?]+|@")]
-    Identifier,
-
-    #[regex("#[^#]*#")]
-    Regex,
+    #[regex(r"[ \t\n\f]", logos::skip)]
+    #[error]
+    Unidentified,
 }
 
 impl fmt::Display for Token {

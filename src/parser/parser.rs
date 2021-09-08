@@ -7,7 +7,7 @@ use std::ops::Range;
 // TODO: add support to quote variable names into literals, like
 // `'@name'` is `Value::Literal(@name)`
 
-pub type ParseError = SourceError<ParseErrorKind>;
+pub type ParseError = SourceError<ParseErrorKind, ContextLevel>;
 pub type ParseRes<T> = Result<T, ParseError>;
 
 /// An error that occured during parsing
@@ -32,6 +32,7 @@ pub enum ParseErrorKind {
         options: &'static [&'static str],
     },
     UnknownFunction,
+    UnfinishedRegex,
 }
 
 impl ParseErrorKind {
@@ -97,6 +98,38 @@ pub struct Parser<'source> {
     input: &'source str,
     lexer: logos::Lexer<'source, Token>,
     current: Option<(Token, Range<usize>)>,
+    current_context: ContextLevel,
+}
+
+/// The context in which the parser is in.
+#[derive(Debug, Clone, Copy)]
+pub enum ContextLevel {
+    Target,
+    /// The target condition. Script and Target won't appear since they are implicit,
+    /// the parser is always parsing a target and the script.
+    Condition,
+    TargetBlock,
+    Cycle,
+    Call,
+}
+
+impl Default for ContextLevel {
+    fn default() -> Self {
+        Self::Target
+    }
+}
+
+impl fmt::Display for ContextLevel {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("parsing ")?;
+        f.write_str(match self {
+            Self::Target => "script target",
+            Self::Condition => "target condition",
+            Self::TargetBlock => "target block",
+            Self::Cycle => "cycle",
+            Self::Call => "function call",
+        })
+    }
 }
 
 impl<'source> Parser<'source> {
@@ -107,6 +140,7 @@ impl<'source> Parser<'source> {
             lexer: Token::lexer(input),
             input,
             current: None,
+            current_context: ContextLevel::default(),
         }
     }
     /// Using the current lexer span and the source, generate a [SourceError]
@@ -115,6 +149,7 @@ impl<'source> Parser<'source> {
         ParseError::new(kind)
             .with_span(self.lexer.span())
             .with_source(self.input)
+            .with_context(self.current_context)
     }
     /// Get the current token, or spit out a lex error
     pub fn current_token(&mut self) -> ParseRes<Option<Token>> {
@@ -123,9 +158,7 @@ impl<'source> Parser<'source> {
         } else {
             Ok(
                 if let Some(next) = match self.lexer.next() {
-                    Some(Token::Unidentified) => Err(self.error(ParseErrorKind::UnexpectedChar(
-                        self.input[self.lexer.span()].chars().next().unwrap(),
-                    ))),
+                    Some(Token::Unidentified) => Err(self.error(ParseErrorKind::UnfinishedRegex)),
                     opt => Ok(opt),
                 }? {
                     let span = self.lexer.span();
@@ -262,12 +295,16 @@ impl<'source> Parser<'source> {
         self.till_eof(Self::parse)
     }
 
-    /// Executes a parser, adding the specified context to the resulting error
-    pub fn with_context<F, T>(&mut self, ctx: &'static str, mut cont: F) -> ParseRes<T>
+    /// Executes a parser within a context level
+    pub fn with_context<F, T>(&mut self, ctx: ContextLevel, mut cont: F) -> ParseRes<T>
     where
         F: FnMut(&mut Self) -> ParseRes<T>,
     {
-        cont(self).map_err(|e| e.with_context(ctx))
+        let last_context = self.current_context;
+        self.current_context = ctx;
+        let value = cont(self)?;
+        self.current_context = last_context;
+        Ok(value)
     }
 
     /// Gets the parser's full source string
@@ -321,6 +358,7 @@ impl fmt::Display for ParseErrorKind {
             }
             // TODO: update link when docs change!
             Self::UnknownFunction => write!(f, "Unknown function name\nthe list of supported functions is at the docs: https://github.com/Alonely0/Voila"),
+            Self::UnfinishedRegex => write!(f, "Please finish your regex with a '#'")
         }
     }
 }
