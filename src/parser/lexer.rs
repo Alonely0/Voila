@@ -6,11 +6,11 @@ pub enum Token {
     #[regex(r#"#[\-a-zA-Z^\$.*\[\](){}?@!%&*\-_=\+'";:,|\\]+#"#)]
     Regex,
 
-    #[regex(r"[^{}(),\s;]+")]
-    Identifier,
-
     #[regex(r"@[A-Za-z0-9]+(?:=[A-Za-z0-9]+)?")]
     Variable,
+
+    #[regex(r"[^@{}(),\s;]+")]
+    Identifier,
 
     #[token(",")]
     Comma,
