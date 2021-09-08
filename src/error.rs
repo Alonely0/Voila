@@ -1,3 +1,4 @@
+use ansi_term::{Colour::*, Style};
 use std::error::Error;
 use std::fmt;
 use std::ops::Range;
@@ -118,18 +119,27 @@ impl<T: fmt::Display, C: fmt::Display> fmt::Display for SourceError<T, C> {
         if let Some(ref snippet) = self.snippet {
             write!(
                 f,
-                "
-error: {kind}
-    --> {line}:{col}
-     |
- {line:3} | {snip}
-     | {markers}",
-                kind = self.kind,
-                col = snippet.start.col + 1,
-                line = snippet.start.line + 1,
-                snip = snippet.line,
-                markers = " ".repeat(snippet.start.col)
-                    + &"^".repeat(self.span.as_ref().unwrap().len())
+                r#"
+{error}: {kind}
+ {arrow} {location}
+  {separator}
+{line:3} {separator}   {snip}
+  {separator}   {red}{markers}{end}"#,
+                error = Red.bold().paint("error"),
+                kind = Style::new().bold().paint(self.kind.to_string()),
+                arrow = Blue.bold().paint("-->"),
+                location = Yellow.bold().paint(format!(
+                    "{line}:{col}",
+                    line = snippet.start.line + 1,
+                    col = snippet.start.col + 1,
+                )),
+                line = Blue.bold().paint((snippet.start.line + 1).to_string()),
+                separator = Blue.bold().paint("|"),
+                snip = &snippet.line,
+                red = Red.bold().prefix(),
+                end = Red.bold().suffix(),
+                markers =
+                    " ".repeat(snippet.start.col) + &"^".repeat(self.span.as_ref().unwrap().len())
             )
         } else if let Some(ref span) = self.span {
             write!(
@@ -142,7 +152,11 @@ error: {kind}
             write!(f, "error: <no position info>: {kind}", kind = self.kind)
         }?;
         for ctx in &self.contexts {
-            write!(f, "\n => while {}", ctx)?;
+            write!(
+                f,
+                "{str}",
+                str = Purple.italic().paint(format!("\n => while {ctx}"))
+            )?;
         }
         Ok(())
     }

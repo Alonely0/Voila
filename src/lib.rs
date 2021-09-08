@@ -7,7 +7,6 @@
 #![allow(clippy::upper_case_acronyms)]
 #![allow(dead_code)]
 
-use futures::executor::block_on;
 use std::error::Error;
 
 mod ast;
