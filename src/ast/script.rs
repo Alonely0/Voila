@@ -9,9 +9,7 @@ use super::parser::*;
 
 impl<'source> Parse<'source> for Script<'source> {
     fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
-        parser
-            .with_context("parsing script", Parser::many_eof)
-            .map(Self)
+        parser.many_eof().map(Self)
     }
 }
 

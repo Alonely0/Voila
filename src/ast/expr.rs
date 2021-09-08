@@ -152,64 +152,63 @@ use super::parser::*;
 
 impl<'source> Parse<'source> for Expr<'source> {
     fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
-        parser.with_context("parsing condition", |parser| {
-            parser.parse().map(Expr::Value).and_then(|lhs| {
-                parse_expr(parser, lhs, 0).map_err(|e| e.with_context("parsing binary expression"))
-            })
+        parser.with_context(ContextLevel::Condition, |parser| {
+            parser
+                .parse()
+                .map(Expr::Value)
+                .and_then(|lhs| parse_expr(parser, lhs, 0))
         })
     }
 }
 
 impl<'source> Parse<'source> for Value<'source> {
     fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
-        parser.with_context("parsing value", |parser| {
-            Ok(
-                match parser.expect_one_of_tokens(
-                    &[Token::Identifier, Token::Variable, Token::Regex],
-                    Some("as a value"),
-                )? {
-                    Token::Identifier => parser.accept_after(|parser| {
-                        Value::Literal(
-                            parser.current_token_source(),
-                            parser.current_token_span().clone(),
-                        )
-                    }),
-                    Token::Variable => {
-                        let span = parser.current_token_span().clone();
-                        match parser.parse() {
-                            Ok(lookup) => {
-                                parser.accept_current();
-                                Value::Lookup(lookup, span)
-                            },
-                            Err(e) if matches!(e.kind, ParseErrorKind::UnknownVariable) => {
-                                let src = parser.current_token_source();
-                                parser.accept_current();
-                                Value::Literal(src, span)
-                            }
-                            Err(e) => return Err(e),
-                        }
-                    },
-                    Token::Regex => {
-                        let src = {
-                            let s = parser.current_token_source();
-                            &s[1..s.len() - 1]
-                        };
-
-                        let regex = regex::Regex::new(src)
-                            .map_err(|err| parser.error(ParseErrorKind::RegexError(err)))?;
-
-                        let mut span = parser.current_token_span().clone();
-                        span.start = span.start.saturating_sub(1);
-                        span.end += 1;
-
-                        let value = Value::Regex(regex, span);
-                        parser.accept_current();
-                        value
-                    },
-                    _ => unreachable!(),
+        Ok(
+            match parser.expect_one_of_tokens(
+                &[Token::Identifier, Token::Variable, Token::Regex],
+                Some("as a value"),
+            )? {
+                Token::Identifier => parser.accept_after(|parser| {
+                    Value::Literal(
+                        parser.current_token_source(),
+                        parser.current_token_span().clone(),
+                    )
+                }),
+                Token::Variable => {
+                    let span = parser.current_token_span().clone();
+                    match parser.parse() {
+                        Ok(lookup) => {
+                            parser.accept_current();
+                            Value::Lookup(lookup, span)
+                        },
+                        Err(e) if matches!(e.kind, ParseErrorKind::UnknownVariable) => {
+                            let src = parser.current_token_source();
+                            parser.accept_current();
+                            Value::Literal(src, span)
+                        },
+                        Err(e) => return Err(e),
+                    }
                 },
-            )
-        })
+                Token::Regex => {
+                    let src = {
+                        let s = parser.current_token_source();
+                        &s[1..s.len() - 1]
+                    };
+
+                    let regex = regex::Regex::new(src)
+                        .map_err(|err| parser.error(ParseErrorKind::RegexError(err)))?;
+
+                    let mut span = parser.current_token_span().clone();
+                    span.start = span.start.saturating_sub(1);
+                    span.end += 1;
+
+                    let value = Value::Regex(regex, span);
+                    parser.accept_current();
+                    value
+                },
+                _ => unreachable!(),
+            },
+        )
     }
 }
 

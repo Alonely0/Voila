@@ -12,14 +12,14 @@ use std::ops::Range;
 /// of contexts to help the user know what the program was up to
 /// when the error happened.
 #[derive(Debug)]
-pub struct SourceError<T> {
+pub struct SourceError<T, C> {
     pub kind: T,
     snippet: Option<Snippet>,
     span: Option<Range<usize>>,
-    contexts: Vec<&'static str>,
+    contexts: Vec<C>,
 }
 
-impl<T> SourceError<T> {
+impl<T, C> SourceError<T, C> {
     pub const fn new(kind: T) -> Self {
         Self {
             kind,
@@ -47,7 +47,7 @@ impl<T> SourceError<T> {
         self
     }
 
-    pub fn with_context(mut self, ctx: &'static str) -> Self {
+    pub fn with_context(mut self, ctx: C) -> Self {
         self.contexts.push(ctx);
         self
     }
@@ -103,16 +103,17 @@ impl Position {
         }
     }
 }
-impl<T> Error for SourceError<T>
+impl<T, C> Error for SourceError<T, C>
 where
     T: Error + 'static,
+    C: fmt::Debug + fmt::Display,
 {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         Some(&self.kind)
     }
 }
 
-impl<T: fmt::Display> fmt::Display for SourceError<T> {
+impl<T: fmt::Display, C: fmt::Display> fmt::Display for SourceError<T, C> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if let Some(ref snippet) = self.snippet {
             write!(

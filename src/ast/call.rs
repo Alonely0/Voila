@@ -1,4 +1,4 @@
-use super::parser::{Parse, ParseErrorKind, ParseRes, Parser};
+use super::parser::{Parse, ParseErrorKind, ContextLevel, ParseRes, Parser};
 use super::HasSpan;
 use super::Lookup;
 use super::Token;
@@ -283,9 +283,10 @@ impl<'source> Arg<'source> {
     }
 }
 
+
 impl<'source> Parse<'source> for Call<'source> {
     fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
-        parser.with_context("parsing function call", |parser| {
+        parser.with_context(ContextLevel::Call, |parser| {
             let function_kind = parser.parse()?;
             let start = parser.current_token_span().start;
             parser.accept_current();

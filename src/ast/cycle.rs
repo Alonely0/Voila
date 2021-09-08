@@ -40,7 +40,7 @@ use super::Token;
 
 impl<'source> Parse<'source> for Cycle<'source> {
     fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
-        parser.with_context("parsing cycle", |parser| {
+        parser.with_context(ContextLevel::Cycle, |parser| {
             let start = parser.offset();
             let mut calls = Vec::new();
             loop {
