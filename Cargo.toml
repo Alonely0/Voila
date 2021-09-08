@@ -47,6 +47,7 @@ async-stream = "0.3.2"
 chrono = "0.4.19"
 flate2 = "1.0.20"
 tar = "0.4.37"
+ansi_term = "0.12.1"
 
 [dev-dependencies]
 criterion = "0.3.5"

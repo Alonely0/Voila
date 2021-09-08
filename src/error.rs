@@ -1,3 +1,4 @@
+use ansi_term::{Colour::*, Style};
 use std::error::Error;
 use std::fmt;
 use std::ops::Range;
@@ -117,16 +118,26 @@ impl<T: fmt::Display> fmt::Display for SourceError<T> {
         if let Some(ref snippet) = self.snippet {
             write!(
                 f,
-                "
-error: {kind}
-    --> {line}:{col}
-     |
- {line:3} | {snip}
-     | {marker:>col$}",
-                kind = self.kind,
+                r#"
+{error}: {kind}
+ {arrow} {location}
+  {separator}
+{line:3} {separator}   {snip}
+  {separator}   {red}{marker:>col$}{end}"#,
+                error = Red.bold().paint("error"),
+                kind = Style::new().bold().paint(self.kind.to_string()),
+                arrow = Blue.bold().paint("-->"),
+                location = Yellow.bold().paint(format!(
+                    "{line}:{col}",
+                    line = snippet.start.line + 1,
+                    col = snippet.start.col + 1,
+                )),
+                line = Blue.bold().paint((snippet.start.line + 1).to_string()),
                 col = snippet.start.col + 1,
-                line = snippet.start.line + 1,
-                snip = snippet.line,
+                separator = Blue.bold().paint("|"),
+                snip = Cyan.paint(&snippet.line),
+                red = Red.bold().prefix(),
+                end = Red.bold().suffix(),
                 marker = '^',
             )
         } else if let Some(ref span) = self.span {
@@ -140,7 +151,11 @@ error: {kind}
             write!(f, "error: <no position info>: {kind}", kind = self.kind)
         }?;
         for ctx in &self.contexts {
-            write!(f, "\n => while {}", ctx)?;
+            write!(
+                f,
+                "{str}",
+                str = Purple.italic().paint(format!("\n => while {ctx}"))
+            )?;
         }
         Ok(())
     }

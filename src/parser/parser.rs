@@ -289,11 +289,11 @@ impl Error for ParseErrorKind {
 impl fmt::Display for ParseErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::RegexError(re) => write!(f, "could not parse regex: {}", re),
+            Self::RegexError(re) => write!(f, "could not parse regex: `{re}`"),
             Self::Expected { wanted, found } => {
-                write!(f, "expected {}, but got instead {}", wanted, found)
+                write!(f, "expected `{wanted}`, but got instead `{found}`")
             },
-            Self::UnexpectedChar(ch) => write!(f, "unexpected char: {:?}", ch),
+            Self::UnexpectedChar(ch) => write!(f, "unexpected char: `{ch}`"),
             Self::UnexpectedEOF {
                 wanted: Some(ref wanted),
             } => write!(f, "unexpected EOF, wanted {}", wanted),
@@ -347,7 +347,7 @@ impl<T: fmt::Display> fmt::Display for WantedSpec<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         format_list(&self.explicit, f)?;
         if let Some(expl) = self.explanation {
-            write!(f, " ({})", expl)
+            write!(f, " ({expl})")
         } else {
             Ok(())
         }
