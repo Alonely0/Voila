@@ -123,12 +123,13 @@ error: {kind}
     --> {line}:{col}
      |
  {line:3} | {snip}
-     | {marker:>col$}",
+     | {markers}",
                 kind = self.kind,
                 col = snippet.start.col + 1,
                 line = snippet.start.line + 1,
                 snip = snippet.line,
-                marker = '^',
+                markers = " ".repeat(snippet.start.col)
+                    + &"^".repeat(self.span.as_ref().unwrap().len())
             )
         } else if let Some(ref span) = self.span {
             write!(
