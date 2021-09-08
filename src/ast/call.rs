@@ -312,9 +312,17 @@ impl<'source> Parse<'source> for Call<'source> {
                     },
                     // TODO: check lookups? as they are known at first time
                     Token::Variable => {
-                        let src = parser.parse()?;
                         let span = parser.current_token_span().clone();
-                        (Arg::lookup(src, span.clone()), span)
+                        (
+                            match parser.parse() {
+                                Ok(lookup) => Arg::lookup(lookup, span.clone()),
+                                Err(e) if matches!(e.kind, ParseErrorKind::UnknownVariable) => {
+                                    Arg::str(parser.current_token_source(), span.clone())
+                                },
+                                Err(e) => return Err(e),
+                            },
+                            span,
+                        )
                     },
                     _ => unreachable!(),
                 };
@@ -345,7 +353,16 @@ impl<'source> Parse<'source> for Call<'source> {
                         },
                         Token::Identifier => {
                             let span = parser.current_token_span().clone();
-                            arg_span = arg.extend_str(arg_span, span, parser.source());
+                            arg_span = match parser.parse() {
+                                Ok(lookup) => {
+                                    arg.extend_lookup(lookup, arg_span, span, parser.source())
+                                },
+                                Err(e) if matches!(e.kind, ParseErrorKind::UnknownVariable) => {
+                                    arg.extend_str(arg_span, span, parser.source())
+                                },
+                                Err(e) => return Err(e),
+                            };
+                            // arg_span = arg.extend_str(arg_span, span, parser.source());
                             parser.accept_current();
                         },
                         _ => unreachable!(),

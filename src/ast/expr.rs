@@ -175,10 +175,19 @@ impl<'source> Parse<'source> for Value<'source> {
                         )
                     }),
                     Token::Variable => {
-                        let lookup = parser.parse()?;
                         let span = parser.current_token_span().clone();
-                        parser.accept_current();
-                        Self::Lookup(lookup, span)
+                        match parser.parse() {
+                            Ok(lookup) => {
+                                parser.accept_current();
+                                Value::Lookup(lookup, span)
+                            },
+                            Err(e) if matches!(e.kind, ParseErrorKind::UnknownVariable) => {
+                                let src = parser.current_token_source();
+                                parser.accept_current();
+                                Value::Literal(src, span)
+                            }
+                            Err(e) => return Err(e),
+                        }
                     },
                     Token::Regex => {
                         let src = {
