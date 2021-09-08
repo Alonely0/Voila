@@ -59,7 +59,7 @@ pub enum Token {
     #[token("||")]
     LogicOr,
 
-    #[regex(r"[A-Za-z0-9.\[\]\-><=]+")]
+    #[regex(r"[A-Za-z0-9.\[\]\-><=:?]+")]
     Identifier,
 
     #[regex("#[^#]*#")]
