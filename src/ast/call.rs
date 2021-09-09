@@ -177,112 +177,6 @@ impl HasSpan for Call<'_> {
     }
 }
 
-/// Represents an argument to the call, with either
-/// a single string like `hello world` or an interpolated
-/// string with variables in it.
-///
-/// The argument maintains an invariant: Its sequence is
-/// never empty
-///
-/// # Examples
-///
-/// - `@name`
-/// - `@name is too big`
-/// - `hello world`
-#[derive(Debug)]
-pub struct Arg<'source> {
-    pub sequence: Vec<InterpolateComponent<'source>>,
-    pub span: Range<usize>,
-}
-
-#[derive(Debug)]
-pub enum InterpolateComponent<'source> {
-    Literal(&'source str),
-    Lookup(Lookup),
-}
-
-impl HasSpan for Arg<'_> {
-    fn span(&self) -> &Range<usize> {
-        &self.span
-    }
-}
-
-impl<'source> Arg<'source> {
-    /// Construct a literal string argument
-    fn str(string: &'source str, span: Range<usize>) -> Self {
-        Self {
-            sequence: vec![InterpolateComponent::Literal(string)],
-            span,
-        }
-    }
-    /// Construct a lookup argument
-    fn lookup(lookup: Lookup, span: Range<usize>) -> Self {
-        Self {
-            sequence: vec![InterpolateComponent::Lookup(lookup)],
-            span,
-        }
-    }
-    /// Extend the argument with a string literal, returning the next span
-    /// (might be modified)
-    fn extend_str(
-        &mut self,
-        last_span: Range<usize>,
-        mut span: Range<usize>,
-        source: &'source str,
-    ) -> Range<usize> {
-        if matches!(
-            self.sequence.last().unwrap(),
-            InterpolateComponent::Literal(_)
-        ) {
-            // if the last component was a literal,
-            // we can just extend the source
-            span.start = last_span.start;
-
-            // UNSAFE: safe. we already unwrapped
-            let last_ref = self.sequence.last_mut().unwrap();
-            *last_ref = InterpolateComponent::Literal(&source[span.clone()]);
-        } else {
-            // if the last component was a variable,
-            // we will extend the span to accomodate the space in between
-            span.start = last_span.end;
-            self.sequence
-                .push(InterpolateComponent::Literal(&source[span.clone()]));
-        }
-        span
-    }
-
-    /// Extend the argument with a lookup, returning the next span
-    fn extend_lookup(
-        &mut self,
-        lookup: Lookup,
-        last_span: Range<usize>,
-        span: Range<usize>,
-        source: &'source str,
-    ) -> Range<usize> {
-        if matches!(
-            self.sequence.last().unwrap(),
-            InterpolateComponent::Literal(_)
-        ) {
-            // if the last component was a literal, we can
-            // extend its source to accomodate the space in between
-            let last_span = last_span.start..span.start;
-            // UNSAFE: safe, we already unwrapped
-            let last_ref = self.sequence.last_mut().unwrap();
-            *last_ref = InterpolateComponent::Literal(&source[last_span]);
-        } else {
-            // otherwise, we will put the spaces as a literal into the sequence
-            self.sequence.push(InterpolateComponent::Literal(
-                &source[last_span.end..span.start],
-            ));
-        }
-
-        // now we can safely push the lookup, as we already handled the space in between
-        self.sequence.push(InterpolateComponent::Lookup(lookup));
-
-        span
-    }
-}
-
 impl<'source> Parse<'source> for Call<'source> {
     fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
         parser.with_context(ContextLevel::Call, |parser| {
@@ -328,21 +222,7 @@ impl<'source> Parse<'source> for Call<'source> {
         })
     }
 }
-use crate::interpreter::{Cache, ErrorKind, ExprResult, Resolve};
-impl Resolve for Arg<'_> {
-    fn resolve(&self, cache: &mut Cache) -> Result<ExprResult, ErrorKind> {
-        let mut str = String::new();
-        for x in &self.sequence {
-            match x {
-                InterpolateComponent::Literal(lit) => str.push_str(lit),
-                InterpolateComponent::Lookup(look) => {
-                    str.push_str(&cache.resolve(look)?.cast_to_string());
-                },
-            }
-        }
-        Ok(str.into())
-    }
-}
+use crate::interpreter::{Cache, ErrorKind, ExprResult};
 
 use std::sync::{Arc, Mutex};
 pub fn run_call(call: &Call, cache: Arc<Mutex<Cache>>) -> Result<(), ErrorKind> {
