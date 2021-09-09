@@ -126,7 +126,7 @@ impl fmt::Display for ContextLevel {
             Self::TargetBlock => "target block",
             Self::Cycle => "cycle",
             Self::Call => "function call",
-            Self::InterpSeq => "string interpolation sequence",
+            Self::InterpSeq => "interpolation sequence",
         })
     }
 }

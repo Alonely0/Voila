@@ -1,4 +1,4 @@
-use super::parser::{ContextLevel, Parse, ParseErrorKind, ParseRes, Parser};
+use super::parser::{ContextLevel, Parse, ParseErrorKind, ParseRes, Parser, WantedSpec};
 use super::HasSpan;
 use super::Lookup;
 use super::Str;
@@ -297,25 +297,24 @@ impl<'source> Parse<'source> for Call<'source> {
             let mut arguments = Vec::new();
 
             loop {
-                match parser.expect_one_of_tokens(
-                    &[Token::CloseParen, Token::Variable, Token::Identifier],
-                    Some("end of argument list or argument to the function"),
-                )? {
-                    Token::CloseParen => break,
-                    Token::Identifier | Token::Variable => {
-                        arguments.push(parser.parse()?);
-                    },
-                    _ => unreachable!(),
+                if parser.expect_any_token(Some(
+                    WantedSpec::explicit_multiple(vec![
+                        Token::Variable,
+                        Token::Identifier,
+                        Token::CloseParen,
+                    ])
+                    .with_explanation("end of argument list or argument to the function"),
+                ))? == Token::CloseParen
+                {
+                    break;
                 }
-                match parser.expect_one_of_tokens(
-                    &[Token::CloseParen, Token::Comma],
-                    Some("end of argument list or comma to continue it"),
-                )? {
-                    Token::CloseParen => break,
-                    Token::Comma => {
-                        parser.accept_current(); // accept the comma and continue
-                    },
-                    _ => unreachable!(),
+                arguments.push(parser.parse()?);
+                if parser.expect_any_token(Some(
+                    WantedSpec::explicit_multiple(vec![Token::CloseParen, Token::Identifier])
+                        .with_explanation("end of argument list or comma to continue it"),
+                ))? != Token::Comma
+                {
+                    break;
                 }
             }
             parser.expect_token(Token::CloseParen, Some("to end the argument list"))?;
