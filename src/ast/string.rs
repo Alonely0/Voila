@@ -1,6 +1,6 @@
 use super::HasSpan;
 use super::Lookup;
-use crate::parser::{Parse, ParseErrorKind, ParseRes, Parser, Token};
+use crate::parser::{ContextLevel, Parse, ParseErrorKind, ParseRes, Parser, Token};
 use std::ops::Range;
 
 /// An interpolated string, which supports spaces in between and variables:
@@ -114,23 +114,26 @@ impl<'source> Parse<'source> for Str<'source> {
     // this parser gets all the variables and identifiers that it can and
     // mashes them up into a Str.
     fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
-        let (mut str, mut last_span) = {
-            parser.expect_one_of_tokens(
+        parser.with_context(ContextLevel::InterpSeq, |parser| {
+            let (mut str, mut last_span) =
+                {
+                    parser.expect_one_of_tokens(
                 &[Token::Variable, Token::Identifier],
                 Some("interpolated strings need at least one variable or string without spaces"),
             )?;
-            let (component, span) = parser.parse()?;
-            (Self::new(component, span.clone()), span)
-        };
-        while parser
-            .current_token()?
-            .filter(|tok| matches!(tok, Token::Variable | Token::Identifier))
-            .is_some()
-        {
-            let (next_component, next_span) = parser.parse()?;
-            last_span = str.extend(next_component, last_span, next_span, parser.source());
-        }
-        Ok(str)
+                    let (component, span) = parser.parse()?;
+                    (Self::new(component, span.clone()), span)
+                };
+            while parser
+                .current_token()?
+                .filter(|tok| matches!(tok, Token::Variable | Token::Identifier))
+                .is_some()
+            {
+                let (next_component, next_span) = parser.parse()?;
+                last_span = str.extend(next_component, last_span, next_span, parser.source());
+            }
+            Ok(str)
+        })
     }
 }
 

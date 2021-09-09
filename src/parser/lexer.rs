@@ -84,7 +84,7 @@ impl fmt::Display for Token {
             Self::OpenParen => write!(f, "opening paren `)`"),
             Self::Variable => write!(f, "variable"),
             Self::Semicolon => write!(f, "semicolon `;`"),
-            Self::Unidentified => unreachable!(),
+            Self::Unidentified => write!(f, "unknown token"),
         }
     }
 }

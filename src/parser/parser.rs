@@ -104,12 +104,11 @@ pub struct Parser<'source> {
 #[derive(Debug, Clone, Copy)]
 pub enum ContextLevel {
     Target,
-    /// The target condition. Script and Target won't appear since they are implicit,
-    /// the parser is always parsing a target and the script.
     Condition,
     TargetBlock,
     Cycle,
     Call,
+    InterpSeq,
 }
 
 impl Default for ContextLevel {
@@ -127,6 +126,7 @@ impl fmt::Display for ContextLevel {
             Self::TargetBlock => "target block",
             Self::Cycle => "cycle",
             Self::Call => "function call",
+            Self::InterpSeq => "string interpolation sequence",
         })
     }
 }
