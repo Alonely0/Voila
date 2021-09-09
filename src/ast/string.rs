@@ -146,7 +146,7 @@ impl interpreter::Resolve for Str<'_> {
             match x {
                 StrComponent::Literal(lit) => str.push_str(lit),
                 StrComponent::Lookup(lookup) => {
-                    str.push_str(&cache.resolve(lookup)?.cast_to_string()?)
+                    str.push_str(&cache.resolve(lookup)?.cast_to_string())
                 },
             }
         }

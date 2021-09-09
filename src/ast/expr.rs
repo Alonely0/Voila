@@ -173,12 +173,12 @@ impl Resolve for Expr<'_> {
                 let lhs = cache.resolve(lhs.as_ref())?;
                 let rhs = cache.resolve(rhs.as_ref())?;
                 Ok(ExprResult::from(match operator {
-                    Operator::Equals => lhs.cast_to_string()? == rhs.cast_to_string()?,
+                    Operator::Equals => lhs.cast_to_string() == rhs.cast_to_string(),
                     Operator::GreaterEqual => lhs.cast_to_number()? >= rhs.cast_to_number()?,
                     Operator::GreaterThan => lhs.cast_to_number()? > rhs.cast_to_number()?,
                     Operator::LessEqual => lhs.cast_to_number()? <= rhs.cast_to_number()?,
                     Operator::LessThan => lhs.cast_to_number()? < rhs.cast_to_number()?,
-                    Operator::NEquals => lhs.cast_to_string()? != rhs.cast_to_string()?,
+                    Operator::NEquals => lhs.cast_to_string() != rhs.cast_to_string(),
                     // regex will be always on the right...?
                     // NOTE: now that I think about it, it should be on the left, right?
                     // like <pattern> matches <string>. I'll keep it consistent with how
@@ -186,8 +186,8 @@ impl Resolve for Expr<'_> {
                     // update the docs. TODO: Think about the places in the matches and
                     // update the description on the README + operator enum before changing
                     // the behavior code.
-                    Operator::Matches => rhs.cast_to_regex()?.is_match(&lhs.cast_to_string()?),
-                    Operator::NMatches => rhs.cast_to_regex()?.is_match(&lhs.cast_to_string()?),
+                    Operator::Matches => rhs.cast_to_regex()?.is_match(&lhs.cast_to_string()),
+                    Operator::NMatches => rhs.cast_to_regex()?.is_match(&lhs.cast_to_string()),
                     // note: using the single ones so a shortcut is not generated,
                     // and the casts are made first. This won't be relevant when types
                     // are validated prior to runtime.

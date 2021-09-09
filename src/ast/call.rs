@@ -337,7 +337,7 @@ impl Resolve for Arg<'_> {
             match x {
                 InterpolateComponent::Literal(lit) => str.push_str(lit),
                 InterpolateComponent::Lookup(look) => {
-                    str.push_str(&cache.resolve(look)?.cast_to_string()?);
+                    str.push_str(&cache.resolve(look)?.cast_to_string());
                 },
             }
         }
@@ -361,7 +361,7 @@ pub fn run_call(call: &Call, cache: Arc<Mutex<Cache>>) -> Result<(), ErrorKind> 
         // if the first `print` grabs the cache first, it will only prevent the second `print` from
         // executing while it's calculating the SHA256 sum, then the second print will be executed
         .map(|arg| cache.lock().unwrap().resolve(arg))
-        .map(|x| x.and_then(|x| x.cast_to_string().map_err(Into::into)))
+        .map(|x| x.map(ExprResult::cast_to_string))
         .collect::<Result<_, _>>()?;
     // drop the guard now since we're finished
     drop(cache);

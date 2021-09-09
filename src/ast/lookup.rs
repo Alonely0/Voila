@@ -334,9 +334,8 @@ fn get_timestamp(time: SystemTime, timestamp: &TimeStamp) -> ExprResult {
         .duration_since(SystemTime::UNIX_EPOCH)
         .map(get_naive_datetime)
         .unwrap();
-    let str = match timestamp {
-        TimeStamp::Date => datetime.date().to_string(),
-        TimeStamp::Hour => datetime.time().format("%H:%M:%S").to_string(),
-    };
-    str.into()
+    match timestamp {
+        TimeStamp::Date => ExprResult::Date(datetime.date()),
+        TimeStamp::Hour => ExprResult::Time(datetime.time()),
+    }
 }

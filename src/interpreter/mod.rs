@@ -13,10 +13,6 @@ pub use cache::*;
 mod hash;
 pub use hash::*;
 
-// TODO: follow
-// <https://rust-lang-nursery.github.io/rust-cookbook/concurrency/threads.html#calculate-sha256-sum-of-iso-files-concurrently>
-// for each file
-
 pub fn run(
     script: Script<'_>,
     directory: std::path::PathBuf,
@@ -87,15 +83,19 @@ pub enum ExprResult {
     Boolean(bool),
     String(String),
     Numeric(f64),
+    Date(chrono::NaiveDate),
+    Time(chrono::NaiveTime),
 }
 
 impl ExprResult {
-    pub fn cast_to_string(self) -> Result<String, CastError> {
-        Ok(match self {
+    pub fn cast_to_string(self) -> String {
+        match self {
             Self::Boolean(b) => b.to_string(),
-            Self::Numeric(n) => n.to_string(),
-            Self::String(str) => str,
-        })
+            Self::String(s) => s.to_string(),
+            Self::Numeric(f) => f.to_string(),
+            Self::Date(d) => d.to_string(),
+            Self::Time(t) => t.format("%H:%M:%S").to_string(),
+        }
     }
 
     pub fn cast_to_bool(self) -> Result<bool, CastError> {
@@ -103,6 +103,18 @@ impl ExprResult {
             Self::Boolean(b) => b,
             Self::Numeric(n) => n != 0.0,
             Self::String(s) => !s.is_empty(),
+            Self::Date(_) => {
+                return Err(CastError::IncompatibleCast {
+                    from: "date",
+                    to: "boolean",
+                })
+            },
+            Self::Time(_) => {
+                return Err(CastError::IncompatibleCast {
+                    from: "time",
+                    to: "boolean",
+                })
+            },
         })
     }
 
@@ -114,6 +126,13 @@ impl ExprResult {
             }),
             Self::Numeric(i) => Ok(i),
             Self::String(str) => str.parse().map_err(CastError::NumParseError),
+            Self::Date(d) => {
+                let unix = chrono::NaiveDateTime::from_timestamp(0, 0).date();
+                Ok(d.signed_duration_since(unix).num_days() as f64)
+            },
+            Self::Time(t) => Ok(t
+                .signed_duration_since(chrono::NaiveTime::from_hms(0, 0, 0))
+                .num_seconds() as f64),
         }
     }
 
@@ -133,6 +152,14 @@ impl ExprResult {
             }),
             Self::Numeric(_) => Err(CastError::IncompatibleCast {
                 from: "number",
+                to: "regex",
+            }),
+            Self::Date(_) => Err(CastError::IncompatibleCast {
+                from: "date",
+                to: "regex",
+            }),
+            Self::Time(_) => Err(CastError::IncompatibleCast {
+                from: "time",
                 to: "regex",
             }),
             Self::String(s) => regex::Regex::new(&s).map_err(CastError::RegexError),
@@ -170,7 +197,7 @@ impl From<bool> for ExprResult {
 
 impl From<String> for ExprResult {
     fn from(str: String) -> Self {
-        Self::String(str)
+        Self::from(str.as_str())
     }
 }
 
@@ -182,6 +209,34 @@ impl From<f64> for ExprResult {
 
 impl From<&str> for ExprResult {
     fn from(t: &str) -> Self {
-        Self::String(t.into())
+        // NOTE: use `lexical::parse` for these routines if you want to be even faster :)
+        fn try_time(source: &str) -> Option<chrono::NaiveTime> {
+            let first_colon = source.find(':')?;
+            let second_colon = source[first_colon + 1..].find(':')? + first_colon + 1;
+            let hour = source[..first_colon].parse().ok()?;
+            let minute = source[first_colon + 1..second_colon].parse().ok()?;
+            let second = source[second_colon + 1..].parse().ok()?;
+            chrono::NaiveTime::from_hms_opt(hour, minute, second)
+        }
+        fn try_date(source: &str) -> Option<chrono::NaiveDate> {
+            let first_dash = source.find('-')?;
+            let second_dash = source[first_dash + 1..].find('-')? + first_dash + 1;
+            let year = source[..first_dash].parse().ok()?;
+            let month = source[first_dash + 1..second_dash].parse().ok()?;
+            let day = source[second_dash + 1..].parse().ok()?;
+            chrono::NaiveDate::from_ymd_opt(year, month, day)
+        }
+        // try to parse it in different ways
+        if let Ok(num) = t.parse() {
+            Self::Numeric(num)
+        } else if let Ok(bool) = t.parse() {
+            Self::Boolean(bool)
+        } else if let Some(time) = try_time(t) {
+            Self::Time(time)
+        } else if let Some(date) = try_date(t) {
+            Self::Date(date)
+        } else {
+            Self::String(t.into())
+        }
     }
 }
