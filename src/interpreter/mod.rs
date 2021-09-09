@@ -87,7 +87,6 @@ pub enum ExprResult {
     Boolean(bool),
     String(String),
     Numeric(f64),
-    Regex(regex::Regex),
 }
 
 impl ExprResult {
@@ -96,24 +95,11 @@ impl ExprResult {
             Self::Boolean(b) => b.to_string(),
             Self::Numeric(n) => n.to_string(),
             Self::String(str) => str,
-            // TODO: make this unreachable with the validator
-            Self::Regex(_) => {
-                return Err(CastError::IncompatibleCast {
-                    from: "regex",
-                    to: "string",
-                })
-            },
         })
     }
 
     pub fn cast_to_bool(self) -> Result<bool, CastError> {
         Ok(match self {
-            Self::Regex(_) => {
-                return Err(CastError::IncompatibleCast {
-                    from: "regex",
-                    to: "boolean",
-                })
-            },
             Self::Boolean(b) => b,
             Self::Numeric(n) => n != 0.0,
             Self::String(s) => !s.is_empty(),
@@ -122,16 +108,34 @@ impl ExprResult {
 
     pub fn cast_to_number(self) -> Result<f64, CastError> {
         match self {
-            Self::Regex(_) => Err(CastError::IncompatibleCast {
-                from: "regex",
-                to: "number",
-            }),
             Self::Boolean(_) => Err(CastError::IncompatibleCast {
                 from: "boolean",
                 to: "number",
             }),
             Self::Numeric(i) => Ok(i),
             Self::String(str) => str.parse().map_err(CastError::NumParseError),
+        }
+    }
+
+    // NOTE: this currently hinders performance since the regex will be
+    // parsed on each file. It is really convenient though, since the language
+    // has been simplified, and when the compiler comes into place resolving expressions
+    // to their correct type, this parse (as well as the str to number one) will be done only once.
+    pub fn cast_to_regex(self) -> Result<regex::Regex, CastError> {
+        // only strings will be available to cast into regex.
+        // NOTE: this (accidentally) supports having regexes with resolved variables.
+        // this WILL be removed in the future, as keeping it with the compiler will
+        // remove the ability to pre-parse it.
+        match self {
+            Self::Boolean(_) => Err(CastError::IncompatibleCast {
+                from: "boolean",
+                to: "regex",
+            }),
+            Self::Numeric(_) => Err(CastError::IncompatibleCast {
+                from: "number",
+                to: "regex",
+            }),
+            Self::String(s) => regex::Regex::new(&s).map_err(CastError::RegexError),
         }
     }
 
@@ -152,13 +156,6 @@ impl ExprResult {
     pub fn as_bool(&self) -> Option<bool> {
         if let Self::Boolean(b) = self {
             Some(*b)
-        } else {
-            None
-        }
-    }
-    pub fn as_regex(&self) -> Option<&regex::Regex> {
-        if let Self::Regex(r) = self {
-            Some(r)
         } else {
             None
         }

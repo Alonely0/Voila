@@ -3,9 +3,6 @@ use std::fmt;
 
 #[derive(Debug, Logos, Clone, Copy, PartialEq, Eq)]
 pub enum Token {
-    #[regex(r#"#[\-a-zA-Z^\$.*\[\](){}?@!%&*\-_=\+'";:,|\\]+#"#)]
-    Regex,
-
     #[regex(r"@[A-Za-z0-9]+(?:=[A-Za-z0-9]+)?")]
     Variable,
 
@@ -86,7 +83,6 @@ impl fmt::Display for Token {
             Self::OpenBrace => write!(f, "opening brace `{{`"),
             Self::OpenParen => write!(f, "opening paren `)`"),
             Self::Variable => write!(f, "variable"),
-            Self::Regex => write!(f, "regular expression"),
             Self::Semicolon => write!(f, "semicolon `;`"),
             Self::Unidentified => unreachable!(),
         }

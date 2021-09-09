@@ -11,6 +11,7 @@ pub enum CastError {
         to: &'static str,
     },
     NumParseError(<f64 as std::str::FromStr>::Err),
+    RegexError(regex::Error),
 }
 
 impl Error for CastError {}
@@ -18,6 +19,7 @@ impl fmt::Display for CastError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::IncompatibleCast { from, to } => write!(f, "can't cast {} to {}", from, to),
+            Self::RegexError(err) => write!(f, "couldn't parse regex: {}", err),
             Self::NumParseError(err) => write!(f, "errar at parsing number: {}", err),
         }
     }

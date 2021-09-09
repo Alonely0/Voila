@@ -1,6 +1,7 @@
-use super::parser::{Parse, ParseErrorKind, ContextLevel, ParseRes, Parser};
+use super::parser::{ContextLevel, Parse, ParseErrorKind, ParseRes, Parser};
 use super::HasSpan;
 use super::Lookup;
+use super::Str;
 use super::Token;
 use std::fmt;
 use std::io;
@@ -24,7 +25,7 @@ use std::ops::Range;
 #[derive(Debug)]
 pub struct Call<'source> {
     function_kind: Function,
-    arguments: Vec<Arg<'source>>,
+    arguments: Vec<Str<'source>>,
     span: Range<usize>,
 }
 
@@ -206,7 +207,6 @@ impl HasSpan for Arg<'_> {
     }
 }
 
-// TODO: refactor this into just the interpolated sequence
 impl<'source> Arg<'source> {
     /// Construct a literal string argument
     fn str(string: &'source str, span: Range<usize>) -> Self {
@@ -283,7 +283,6 @@ impl<'source> Arg<'source> {
     }
 }
 
-
 impl<'source> Parse<'source> for Call<'source> {
     fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
         parser.with_context(ContextLevel::Call, |parser| {
@@ -297,84 +296,31 @@ impl<'source> Parse<'source> for Call<'source> {
             parser.accept_current();
             let mut arguments = Vec::new();
 
-            // parsing arguments
-            'outer: loop {
-                let (mut arg, mut arg_span) = match parser.expect_one_of_tokens(
-                    &[Token::CloseParen, Token::Identifier, Token::Variable],
-                    Some("argument to the function call or end the call"),
+            loop {
+                match parser.expect_one_of_tokens(
+                    &[Token::CloseParen, Token::Variable, Token::Identifier],
+                    Some("end of argument list or argument to the function"),
                 )? {
-                    Token::CloseParen => {
-                        break;
-                    },
-                    Token::Identifier => {
-                        let src = parser.current_token_source();
-                        let span = parser.current_token_span().clone();
-                        (Arg::str(src, span.clone()), span)
-                    },
-                    // TODO: check lookups? as they are known at first time
-                    Token::Variable => {
-                        let span = parser.current_token_span().clone();
-                        (
-                            match parser.parse() {
-                                Ok(lookup) => Arg::lookup(lookup, span.clone()),
-                                Err(e) if matches!(e.kind, ParseErrorKind::UnknownVariable) => {
-                                    Arg::str(parser.current_token_source(), span.clone())
-                                },
-                                Err(e) => return Err(e),
-                            },
-                            span,
-                        )
+                    Token::CloseParen => break,
+                    Token::Identifier | Token::Variable => {
+                        arguments.push(parser.parse()?);
                     },
                     _ => unreachable!(),
-                };
-                parser.accept_current();
-                loop {
-                    match parser.expect_one_of_tokens(
-                        &[
-                            Token::CloseParen,
-                            Token::Identifier,
-                            Token::Variable,
-                            Token::Comma,
-                        ],
-                        None,
-                    )? {
-                        Token::CloseParen => {
-                            arguments.push(arg);
-                            break 'outer;
-                        },
-                        Token::Comma => {
-                            parser.accept_current();
-                            break;
-                        },
-                        Token::Variable => {
-                            let span = parser.current_token_span().clone();
-                            arg_span = match parser.parse() {
-                                Ok(lookup) => {
-                                    arg.extend_lookup(lookup, arg_span, span, parser.source())
-                                },
-                                Err(e) if matches!(e.kind, ParseErrorKind::UnknownVariable) => {
-                                    arg.extend_str(arg_span, span, parser.source())
-                                },
-                                Err(e) => return Err(e),
-                            };
-                            parser.accept_current();
-                        },
-                        Token::Identifier => {
-                            let span = parser.current_token_span().clone();
-                            arg_span = arg.extend_str(arg_span, span, parser.source());
-                            parser.accept_current();
-                        },
-                        _ => unreachable!(),
-                    }
                 }
-                arguments.push(arg);
+                match parser.expect_one_of_tokens(
+                    &[Token::CloseParen, Token::Comma],
+                    Some("end of argument list or comma to continue it"),
+                )? {
+                    Token::CloseParen => break,
+                    Token::Comma => {
+                        parser.accept_current(); // accept the comma and continue
+                    },
+                    _ => unreachable!(),
+                }
             }
-            //     arguments.push(arg);
-            // }
             parser.expect_token(Token::CloseParen, Some("to end the argument list"))?;
             let end = parser.current_token_span().end;
             parser.accept_current();
-
             Ok(Self {
                 function_kind,
                 arguments,

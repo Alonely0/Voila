@@ -21,7 +21,6 @@ pub enum ParseErrorKind {
     UnexpectedEOF {
         wanted: Option<WantedSpec<Token>>,
     },
-    RegexError(regex::Error),
     UnknownVariable,
     InvalidSpecifier {
         options: &'static [&'static str],
@@ -32,7 +31,6 @@ pub enum ParseErrorKind {
         options: &'static [&'static str],
     },
     UnknownFunction,
-    UnfinishedRegex,
 }
 
 impl ParseErrorKind {
@@ -156,18 +154,13 @@ impl<'source> Parser<'source> {
         if let Some((tok, _)) = self.current {
             Ok(Some(tok))
         } else {
-            Ok(
-                if let Some(next) = match self.lexer.next() {
-                    Some(Token::Unidentified) => Err(self.error(ParseErrorKind::UnfinishedRegex)),
-                    opt => Ok(opt),
-                }? {
-                    let span = self.lexer.span();
-                    self.current = Some((next, span));
-                    Some(next)
-                } else {
-                    None
-                },
-            )
+            Ok(if let Some(next) = self.lexer.next() {
+                let span = self.lexer.span();
+                self.current = Some((next, span));
+                Some(next)
+            } else {
+                None
+            })
         }
     }
     /// Get the current parser's offset in the source code
@@ -313,24 +306,15 @@ impl<'source> Parser<'source> {
     }
 }
 
-impl Error for ParseErrorKind {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        if let Self::RegexError(re) = self {
-            Some(re)
-        } else {
-            None
-        }
-    }
-}
+impl Error for ParseErrorKind {}
 
 impl fmt::Display for ParseErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::RegexError(re) => write!(f, "could not parse regex: `{re}`"),
             Self::Expected { wanted, found } => {
-                write!(f, "expected `{wanted}`, but got instead `{found}`")
+                write!(f, "expected {wanted}, but got instead {found}")
             },
-            Self::UnexpectedChar(ch) => write!(f, "unexpected char: `{ch}`"),
+            Self::UnexpectedChar(ch) => write!(f, "unexpected char: {:?}", ch),
             Self::UnexpectedEOF {
                 wanted: Some(ref wanted),
             } => write!(f, "unexpected EOF, wanted {}", wanted),
@@ -339,6 +323,7 @@ impl fmt::Display for ParseErrorKind {
                 // TODO: Update link when docs change!!!
                 write!(f, "Unknown variable name\nthe list of supported variables is at the docs: https://github.com/Alonely0/Voila")
             },
+            // TODO: add variable name to `InvalidSpecifier`.
             Self::InvalidSpecifier { options } => {
                 write!(
                     f,
@@ -358,7 +343,6 @@ impl fmt::Display for ParseErrorKind {
             }
             // TODO: update link when docs change!
             Self::UnknownFunction => write!(f, "Unknown function name\nthe list of supported functions is at the docs: https://github.com/Alonely0/Voila"),
-            Self::UnfinishedRegex => write!(f, "Please finish your regex with a '#'")
         }
     }
 }

@@ -24,6 +24,7 @@ mod_use! {
     use cycle;
     use call;
     use lookup;
+    use string;
 }
 
 pub fn parse_script(source: &str) -> parser::ParseRes<Script> {
