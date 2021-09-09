@@ -91,10 +91,18 @@ impl ExprResult {
     pub fn cast_to_string(self) -> String {
         match self {
             Self::Boolean(b) => b.to_string(),
-            Self::String(s) => s.to_string(),
+            Self::String(s) => s,
             Self::Numeric(f) => f.to_string(),
             Self::Date(d) => d.to_string(),
             Self::Time(t) => t.format("%H:%M:%S").to_string(),
+        }
+    }
+
+    /// Try to reinterpret the value as another thing.
+    pub fn reinterpret(self) -> Self {
+        match self {
+            Self::String(s) => Self::parse_str(&s),
+            other => other,
         }
     }
 
@@ -187,28 +195,7 @@ impl ExprResult {
             None
         }
     }
-}
-
-impl From<bool> for ExprResult {
-    fn from(b: bool) -> Self {
-        Self::Boolean(b)
-    }
-}
-
-impl From<String> for ExprResult {
-    fn from(str: String) -> Self {
-        Self::from(str.as_str())
-    }
-}
-
-impl From<f64> for ExprResult {
-    fn from(i: f64) -> Self {
-        Self::Numeric(i)
-    }
-}
-
-impl From<&str> for ExprResult {
-    fn from(t: &str) -> Self {
+    pub fn parse_str(t: &str) -> Self {
         // NOTE: use `lexical::parse` for these routines if you want to be even faster :)
         fn try_time(source: &str) -> Option<chrono::NaiveTime> {
             let first_colon = source.find(':')?;
@@ -238,5 +225,29 @@ impl From<&str> for ExprResult {
         } else {
             Self::String(t.into())
         }
+    }
+}
+
+impl From<bool> for ExprResult {
+    fn from(b: bool) -> Self {
+        Self::Boolean(b)
+    }
+}
+
+impl From<String> for ExprResult {
+    fn from(str: String) -> Self {
+        Self::String(str)
+    }
+}
+
+impl From<&str> for ExprResult {
+    fn from(str: &str) -> Self {
+        Self::String(str.into())
+    }
+}
+
+impl From<f64> for ExprResult {
+    fn from(i: f64) -> Self {
+        Self::Numeric(i)
     }
 }

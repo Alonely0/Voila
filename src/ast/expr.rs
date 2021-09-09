@@ -174,10 +174,18 @@ impl Resolve for Expr<'_> {
                 let rhs = cache.resolve(rhs.as_ref())?;
                 Ok(ExprResult::from(match operator {
                     Operator::Equals => lhs.cast_to_string() == rhs.cast_to_string(),
-                    Operator::GreaterEqual => lhs.cast_to_number()? >= rhs.cast_to_number()?,
-                    Operator::GreaterThan => lhs.cast_to_number()? > rhs.cast_to_number()?,
-                    Operator::LessEqual => lhs.cast_to_number()? <= rhs.cast_to_number()?,
-                    Operator::LessThan => lhs.cast_to_number()? < rhs.cast_to_number()?,
+                    Operator::GreaterEqual => {
+                        lhs.reinterpret().cast_to_number()? >= rhs.reinterpret().cast_to_number()?
+                    },
+                    Operator::GreaterThan => {
+                        lhs.reinterpret().cast_to_number()? > rhs.reinterpret().cast_to_number()?
+                    },
+                    Operator::LessEqual => {
+                        lhs.reinterpret().cast_to_number()? <= rhs.reinterpret().cast_to_number()?
+                    },
+                    Operator::LessThan => {
+                        lhs.reinterpret().cast_to_number()? < rhs.reinterpret().cast_to_number()?
+                    },
                     Operator::NEquals => lhs.cast_to_string() != rhs.cast_to_string(),
                     // regex will be always on the right...?
                     // NOTE: now that I think about it, it should be on the left, right?
