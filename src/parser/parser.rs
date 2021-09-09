@@ -328,7 +328,7 @@ impl fmt::Display for ParseErrorKind {
             Self::InvalidSpecifier { variable, options } => {
                 write!(
                     f,
-                    "The specifier selected isn't available for `{variable}` ("
+                    "The specifier selected isn't available for `{variable}` (expected one of"
                 )?;
                 format_list(options, f)?;
                 write!(f, ")")
