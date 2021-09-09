@@ -20,7 +20,7 @@ impl fmt::Display for CastError {
         match self {
             Self::IncompatibleCast { from, to } => write!(f, "can't cast {} to {}", from, to),
             Self::RegexError(err) => write!(f, "couldn't parse regex: {}", err),
-            Self::NumParseError(err) => write!(f, "errar at parsing number: {}", err),
+            Self::NumParseError(err) => write!(f, "error at parsing number: {}", err),
         }
     }
 }
