@@ -101,6 +101,7 @@ impl Parse<'_> for Lookup {
                     })
                     .and_then(|var| {
                         $type::detect(var).ok_or(ParseErrorKind::InvalidSpecifier {
+                            variable: $spec,
                             options: &$type::OPTS,
                         })
                     })

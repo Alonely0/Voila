@@ -23,6 +23,7 @@ pub enum ParseErrorKind {
     },
     UnknownVariable,
     InvalidSpecifier {
+        variable: &'static str,
         options: &'static [&'static str],
     },
     VarHasNoSpec(&'static str),
@@ -324,10 +325,10 @@ impl fmt::Display for ParseErrorKind {
                 write!(f, "Unknown variable name\nthe list of supported variables is at the docs: https://github.com/Alonely0/Voila")
             },
             // TODO: add variable name to `InvalidSpecifier`.
-            Self::InvalidSpecifier { options } => {
+            Self::InvalidSpecifier { variable, options } => {
                 write!(
                     f,
-                    "The specifier selected isn't available for this variable ("
+                    "The specifier selected isn't available for `{variable}` ("
                 )?;
                 format_list(options, f)?;
                 write!(f, ")")
