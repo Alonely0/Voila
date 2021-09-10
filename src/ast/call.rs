@@ -49,7 +49,7 @@ pub enum Function {
     /// separated by spaces (similar to python's print function without parameters), and a newline
     /// after.
     Print,
-    /// Execute a command in `sh`
+    /// Execute a command in a shell
     ///
     /// # Call format
     /// `shell` needs at least one argument. When called, it gets all the arguments, joins all by spaces
