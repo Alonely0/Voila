@@ -80,6 +80,8 @@ pub trait Runnable {
 pub enum ExprResult {
     Boolean(bool),
     String(String),
+    // TODO: switch to a decimal number and ensure
+    // to control the precision (without using strings)
     Numeric(f64),
     Date(chrono::NaiveDate),
     Time(chrono::NaiveTime),
