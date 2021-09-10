@@ -146,8 +146,7 @@ impl<'source> Parser<'source> {
     /// with a [ParseErrorKind]
     pub fn error(&self, kind: ParseErrorKind) -> ParseError {
         ParseError::new(kind)
-            .with_span(self.lexer.span())
-            .with_source(self.input)
+            .with_source(self.lexer.span(), self.input)
             .with_context(self.current_context)
     }
     /// Get the current token, or spit out a lex error
@@ -324,7 +323,6 @@ impl fmt::Display for ParseErrorKind {
                 // TODO: Update link when docs change!!!
                 write!(f, "Unknown variable name\nthe list of supported variables is at the docs: https://github.com/Alonely0/Voila")
             },
-            // TODO: add variable name to `InvalidSpecifier`.
             Self::InvalidSpecifier { variable, options } => {
                 write!(
                     f,

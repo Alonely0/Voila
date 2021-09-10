@@ -3,11 +3,6 @@ use std::error::Error;
 use std::fmt;
 use std::ops::Range;
 
-// TODO: display the span correctly with the markers
-
-// TODO: remove the optional span, and just have a `with_source` on `SourceError`,
-// with the start and end `Position`s in the source error struct.
-
 /// Error that is ready to represent to the user in a nice way,
 /// including a line snippet with the error position, and a bunch
 /// of contexts to help the user know what the program was up to
@@ -15,8 +10,7 @@ use std::ops::Range;
 #[derive(Debug)]
 pub struct SourceError<T, C> {
     pub kind: T,
-    snippet: Option<Snippet>,
-    span: Option<Range<usize>>,
+    snippet: Option<(Range<usize>, Snippet)>,
     contexts: Vec<C>,
 }
 
@@ -25,26 +19,15 @@ impl<T, C> SourceError<T, C> {
         Self {
             kind,
             snippet: None,
-            span: None,
             contexts: Vec::new(),
         }
     }
-    pub fn set_span(&mut self, span: Range<usize>) {
-        self.span = Some(span)
-    }
-    pub fn set_source(&mut self, source: &str) {
-        self.snippet = self
-            .span
-            .as_ref()
-            .and_then(|span| Snippet::from_source(span, source))
-    }
-    pub fn with_span(mut self, span: Range<usize>) -> Self {
-        self.set_span(span);
-        self
+    pub fn set_source(&mut self, span: Range<usize>, source: &str) {
+        self.snippet = Snippet::from_source(&span, source).map(|snip| (span, snip));
     }
 
-    pub fn with_source(mut self, source: &str) -> Self {
-        self.set_source(source);
+    pub fn with_source(mut self, span: Range<usize>, source: &str) -> Self {
+        self.set_source(span, source);
         self
     }
 
@@ -116,7 +99,7 @@ where
 
 impl<T: fmt::Display, C: fmt::Display> fmt::Display for SourceError<T, C> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if let Some(ref snippet) = self.snippet {
+        if let Some((span, snippet)) = &self.snippet {
             write!(
                 f,
                 r#"
@@ -138,18 +121,10 @@ impl<T: fmt::Display, C: fmt::Display> fmt::Display for SourceError<T, C> {
                 snip = &snippet.line,
                 red = Red.bold().prefix(),
                 end = Red.bold().suffix(),
-                markers =
-                    " ".repeat(snippet.start.col) + &"^".repeat(self.span.as_ref().unwrap().len())
-            )
-        } else if let Some(ref span) = self.span {
-            write!(
-                f,
-                "error at {span:?}: {kind}",
-                span = span,
-                kind = self.kind
+                markers = " ".repeat(snippet.start.col) + &"^".repeat(span.len())
             )
         } else {
-            write!(f, "error: <no position info>: {kind}", kind = self.kind)
+            write!(f, "error:  {kind}", kind = self.kind)
         }?;
         for ctx in &self.contexts {
             write!(

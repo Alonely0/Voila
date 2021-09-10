@@ -48,7 +48,8 @@ impl Error for ErrorKind {
     }
 }
 
-// TODO: make this thing not look like shit
+// TODO: make displays for interpreter errors have a nice
+// format
 impl fmt::Display for ErrorKind {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.source().unwrap())

@@ -1,13 +1,10 @@
 use super::parser::{ContextLevel, Parse, ParseErrorKind, ParseRes, Parser, WantedSpec};
 use super::HasSpan;
-use super::Lookup;
 use super::Str;
 use super::Token;
 use std::fmt;
 use std::io;
 use std::ops::Range;
-
-// TODO: separate the impls for parser and interpreter in two modules for ecach
 
 /// Represents a call in the script like
 /// `shell` or `delete`. All functions receive the arguments in
@@ -386,7 +383,7 @@ fn shell(commands: Vec<String>) -> Result<(), io::Error> {
         complete_command.arg(cmd);
         // question is: will this thread join with rayon threadpool?
         // TODO: refactor this to use the thread pool.
-        complete_command.spawn()?;
+        complete_command.spawn()?.wait()?;
 
         Ok(())
     })
