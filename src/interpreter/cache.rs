@@ -2,15 +2,21 @@ use super::ErrorKind;
 use super::ExprResult;
 use super::Lookup;
 use super::LookupError;
-use super::PartialReader;
 use std::collections::HashMap;
+use std::io::BufReader;
 use std::lazy::OnceCell;
 
+/// A struct to store already computed variables (like sums, name, etc), file metadata,
+/// and a buffered reader for the file.
 #[derive(Debug)]
 pub struct Cache {
+    /// Already computed variables go here so we don't compute things twice for the same file
     variables: HashMap<Lookup, ExprResult>,
-    file: OnceCell<PartialReader<std::fs::File>>,
+    /// The open buffered reader for the file.
+    file: OnceCell<BufReader<std::fs::File>>,
+    /// The file metadata, if it was requested anytime.
     metadata: OnceCell<std::fs::Metadata>,
+    /// The file path, constant for all the cache lifetime.
     path: std::path::PathBuf,
 }
 
@@ -26,11 +32,11 @@ impl Cache {
     pub fn get_path(&self) -> &std::path::PathBuf {
         &self.path
     }
-    pub fn get_file_mut(&mut self) -> Result<&mut PartialReader<std::fs::File>, ErrorKind> {
+    pub fn get_file_mut(&mut self) -> Result<&mut BufReader<std::fs::File>, ErrorKind> {
         self.file.get_or_try_init(|| {
             std::fs::File::open(&self.path)
                 .map_err(ErrorKind::from)
-                .map(PartialReader::new)
+                .map(|file| BufReader::with_capacity(8192, file))
         })?;
         Ok(self.file.get_mut().unwrap())
     }

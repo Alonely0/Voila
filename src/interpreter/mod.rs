@@ -4,8 +4,6 @@ use rayon::ThreadPoolBuilder;
 use std::error::Error;
 use std::sync::mpsc;
 use walkdir::WalkDir;
-mod partial_reader;
-pub use partial_reader::PartialReader;
 mod error;
 pub use error::*;
 mod cache;

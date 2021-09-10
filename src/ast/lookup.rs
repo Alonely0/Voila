@@ -280,8 +280,18 @@ impl CachedResolve for Lookup {
                 Ok(size >= 4 && rb == [0x7f, b'E', b'L', b'F']).map(ExprResult::from)
             },
             Self::Text => {
-                let file = cache.get_file_mut()?.fill()?;
-                Ok(file.last().filter(|x| *x == &b'\n').is_some()).map(ExprResult::from)
+                use std::io::Read;
+                use std::io::Seek;
+                use std::io::SeekFrom;
+                let bufreader = cache.get_file_mut()?;
+                bufreader.seek(SeekFrom::End(1))?;
+                let mut buf = [0u8; 1];
+                let last = if bufreader.read(&mut buf)? > 0 {
+                    Some(buf[0])
+                } else {
+                    None
+                };
+                Ok(last == Some(b'\n')).map(ExprResult::from)
             },
             Self::Creation(ts) => {
                 let created_time = cache.get_file_metadata()?.created()?;
