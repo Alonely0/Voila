@@ -44,10 +44,10 @@ These are the available variables:
 * `readonly`: true if the file is ro (else false)
 * `elf`: true if the file is compliant to the Executable & Linkable Format (else false)
 * `txt`: true if the file is a valid text file (else false)
-* `size=tb`: file size in terabytes (2 decimals)
-* `size=gb`: file size in gigabytes (2 decimals)
-* `size=mb`: file size in megabytes (2 decimals)
-* `size=kb`: file size in kilobytes (2 decimals)
+* `size=tb`: file size in terabytes
+* `size=gb`: file size in gigabytes
+* `size=mb`: file size in megabytes
+* `size=kb`: file size in kilobytes
 * `size=bs`: file size bytes (no decimals)
 * `sum=md5`: md5 checksum ***this variable might be removed in the future, md5 is completely broken***
 * `sum=sha1`: sha1 checksum ***this variable might be removed in the future, sha1 is completely broken***
