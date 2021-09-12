@@ -4,7 +4,6 @@
 #![feature(decl_macro)]
 #![feature(box_syntax)]
 #![feature(option_result_unwrap_unchecked)]
-#![allow(clippy::upper_case_acronyms)]
 #![allow(dead_code)]
 
 use std::error::Error;
@@ -13,6 +12,7 @@ mod ast;
 mod cli;
 mod error;
 mod interpreter;
+mod lexer;
 pub mod macros;
 mod parser;
 

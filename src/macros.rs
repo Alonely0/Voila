@@ -6,3 +6,11 @@ pub macro println_on_debug {
         }
     }
 }
+#[macro_export]
+macro_rules! mod_use {
+    { $(use $mod:ident;)+ } => { $(
+            mod $mod;
+            pub use $mod::*;
+        )+
+    };
+}

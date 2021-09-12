@@ -312,7 +312,7 @@ impl CachedResolve for Lookup {
                             .file_name()
                             .unwrap_or_else(|| OsStr::new(""))
                             .to_str()
-                            .unwrap_or_else(|| "")
+                            .unwrap_or("")
                             .starts_with('.'),
                     ))
                 }
