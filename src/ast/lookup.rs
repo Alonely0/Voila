@@ -289,14 +289,14 @@ impl CachedResolve for Lookup {
                 use std::io::Seek;
                 use std::io::SeekFrom;
                 let bufreader = cache.get_file_mut()?;
-                bufreader.seek(SeekFrom::End(1))?;
+                bufreader.seek(SeekFrom::End(-1))?;
                 let mut buf = [0u8; 1];
                 let last = if bufreader.read(&mut buf)? > 0 {
                     Some(buf[0])
                 } else {
                     None
                 };
-                Ok(last == Some(b'\n')).map(ExprResult::from)
+                Ok(last == Some(b'\n') || last == Some(b'\r')).map(ExprResult::from)
             },
             Self::Hidden => {
                 #[cfg(not(any(unix, windows)))]
