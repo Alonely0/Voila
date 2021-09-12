@@ -1,26 +1,23 @@
 #![forbid(unsafe_code)] // unsafe code makes ferris get nervous
 #![feature(format_args_capture)]
+#![feature(once_cell)]
 #![feature(decl_macro)]
 #![feature(box_syntax)]
+#![feature(option_result_unwrap_unchecked)]
 #![allow(clippy::upper_case_acronyms)]
 #![allow(dead_code)]
 
-use futures::executor::block_on;
-use macros::println_on_debug;
+use std::error::Error;
 
-#[path = "cli.rs"]
+mod ast;
 mod cli;
-#[path = "interpreter/mod.rs"]
+mod error;
 mod interpreter;
-#[path = "lexer.rs"]
-mod lexer;
-#[path = "macros.rs"]
-mod macros;
-#[path = "parser/mod.rs"]
+pub mod macros;
 mod parser;
 
-pub fn run(source: String, dir: std::path::PathBuf, recursive: bool) {
-    let tokens: Vec<lexer::Token> = lexer::lex(&source); // lex source
-    let ast = parser::parse(tokens); // parse tokens
-    block_on(interpreter::run(ast, dir, recursive)); // wait interpreter to finish
+pub fn run(source: &str, dir: std::path::PathBuf, recursive: bool) -> Result<(), Box<dyn Error>> {
+    let ast = ast::parse_script(source)?;
+    interpreter::run(ast, dir, recursive)?; // wait interpreter to finish
+    Ok(())
 }
