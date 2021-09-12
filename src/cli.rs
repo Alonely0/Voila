@@ -8,10 +8,12 @@ pub fn get_cli_args() -> Cli {
 #[derive(StructOpt)]
 #[structopt(
     author = "Guillem Jara <4lon3ly0@tutanota.com>",
-    about = "Licensed under the MIT License\n
-Download at https://github.com/alonely0/voila/releases\n
-Source code at https://github.com/alonely0/voila\n\n
-Voila is a CLI tool for operating with files and directories in massive amounts in a fast & reliable way.",
+    about = r#"
+Voila is a CLI tool for operating with files and directories in massive amounts in a fast & reliable way.
+
+Licensed under the MIT License
+Download at https://github.com/alonely0/voila/releases
+Source code at https://github.com/alonely0/voila"#,
     version_short = "v"
 )]
 pub struct Cli {
