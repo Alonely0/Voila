@@ -91,13 +91,6 @@ These are the available operations/functions:
 * `-h, --help`: Displays help.
 * `-v, --version`: Displays installed version of Voila, if any.
 
-## Error types
-
-Voila provides 2 main error types:
-
-* `RUNTIME ERROR`: An error that occurred while running the Voila code. Code might have been already executed, and other code might not.
-* `PARSE ERROR`: This error is triggered by a syntax error during the construction of the AST (what reads the interpreter), so no code was executed during the raise of this error.
-
 # Installation
 
 You can install voila by cloning the repository and compiling or by `cargo install voila`. I have planned to provide prebuilt binaries soon.
