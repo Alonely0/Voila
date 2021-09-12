@@ -4,8 +4,16 @@ use std::error::Error;
 use std::fmt;
 use std::ops::Range;
 
-// TODO: add support to quote variable names into literals, like
-// `'@name'` is `Value::Literal(@name)`
+// TODO
+/* add support to quote string that can have any character, including reserved tokens:
+    `print("@name")` => output: @name
+    `print("(x)")` => output: (x)
+    `print("{x}")` => output: {x}
+ or add support to escape tokens as text so you can produce the same result:
+    `print(\@name)` => output: @name
+    `print(\(\))` => output: ()
+    `print(\{x\})` => output: {x}
+*/
 
 pub type ParseError = SourceError<ParseErrorKind, ContextLevel>;
 pub type ParseRes<T> = Result<T, ParseError>;
