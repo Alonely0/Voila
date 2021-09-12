@@ -305,13 +305,14 @@ impl CachedResolve for Lookup {
                 }
                 #[cfg(not(windows))]
                 {
+                    use std::ffi::OsStr;
                     Ok(ExprResult::from(
                         cache
                             .get_path()
                             .file_name()
-                            .unwrap()
+                            .unwrap_or_else(|| OsStr::new(""))
                             .to_str()
-                            .unwrap()
+                            .unwrap_or_else(|| "")
                             .starts_with('.'),
                     ))
                 }
