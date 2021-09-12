@@ -101,7 +101,3 @@ You can install voila by cloning the repository and compiling or by `cargo insta
 * Feature requests: file a f-request issue using [this link](https://github.com/Alonely0/voila/issues/new?assignees=Alonely0&labels=enhancement&template=feature_request.md&title=). Remember to check if that f-request was [already submitted](https://github.com/Alonely0/voila/labels/enhancement)!
 * Doubt: file a doubt issue using [this link](https://github.com/Alonely0/voila/issues/new?assignees=Alonely0&labels=question&template=doubt.md&title=). Remember to check if that doubt [was already resolved](https://github.com/Alonely0/voila/labels/question)!
 * Wanna chat with me? You can talk with me on [Discord](https://discord.com), add me as friend (`NOT-Guillem#8042`) and we'll be able to start chatting!
-
-# Message from the author
-
-Voila has been coded & tested by only one person, so don't expect it to be perfect. I'm looking for more people interested in maintaining Voila and helping out, if you're interested, DM me on [discord](https://discord.com) (`NOT-Guillem#8042`). Voila's discord server [is this](https://discord.gg/RhTpYGbnXU)
