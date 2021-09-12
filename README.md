@@ -15,13 +15,13 @@
 [![macOS build](https://github.com/Alonely0/Voila/actions/workflows/mac-ci.yml/badge.svg)](https://github.com/Alonely0/Voila/actions/workflows/mac-ci.yml)
 [![Windows build](https://github.com/Alonely0/Voila/actions/workflows/windows-ci.yml/badge.svg)](https://github.com/Alonely0/Voila/actions/workflows/windows-ci.yml)
 
-Voila is a domain-specific language designed for doing complex operations to folders & files. It is based on a CLI tool, although you can write your Voila code and do something like this `voila DIRECTORY "$(cat operations.vla)"`. Voila is mainly tested in Linux, so should work better in *nix (Linux,*BSD, macOS, etc) than in Windows-based operating systems.
+Voila is a domain-specific language designed for doing complex operations to folders & files. It is based on a CLI tool, although you can write your Voila code and do something like this `voila DIRECTORY "$(cat operations.vla)"`. Voila is mainly tested in Linux, so should work better in *nix (Linux,*BSD, macOS, etc) than in Windows-based operating systems, but shouldn't be any problems on them.
 
 ## Syntax
 
-`voila DIRECTORY "<@VARIABLE | STRING | #REGEXP#> OPERATOR <@VARIABLE | STRING | #REGEXP#> [|| | && ANOTHER_CONDITIONAL ...] {OPERATION1-CYCLE-1(ARG1 ARG1, ARG2) OPERATION2-CYCLE-1(ARG1 ARG2) ...; OPERATION1-CYCLE-2(ARG1, ARG2 ARG2, ARG3)...}"`
+`$ voila DIRECTORY '<@VARIABLE | STRING> OPERATOR <@VARIABLE | STRING> [|| | && ANOTHER_CONDITIONAL ...] {OPERATION1-CYCLE-1(ARG1 ARG1, ARG2) OPERATION2-CYCLE-1(ARG1 ARG2) ...; OPERATION1-CYCLE-2(ARG1, ARG2 ARG2, ARG3)...}'`
 
-Voila's syntax is composed of a traditional conditional/multi-conditional statement, followed by the operations, delimited within curly brackets. These are separated into cycles. A cycle is an iteration between all directory files, the operations in every cycle are executed in parallel, and cycles are executed consecutively. cycles are separated with `;`, and operations/functions arguments are separated with `,`. Variables' prefix is `@`, and its value changes to the file that is evaluating. Regular expressions are delimited between `#`. For a more intuitive explanation, go to the "Examples" section.
+Voila's syntax is composed of a traditional conditional/multi-conditional statement, followed by the operations, delimited within curly brackets. These are separated into cycles. A cycle is an iteration between all directory files, the operations in every cycle are executed in parallel, and cycles are executed consecutively. cycles are separated with `;`, and operations/functions arguments are separated with `,`. Variables' prefix is `@`, and its value changes to the file that is evaluating. For a more intuitive explanation, go to the "Examples" section.
 
 These are the available conditional operators:
 
@@ -82,7 +82,7 @@ These are the available operations/functions:
 ### Examples
 
 * `voila /backup "@creation=date <= 2020-01-01 { print(@name has been deleted) delete(@path) }`: Voila will delete every file in /backup whose creation was earlier to 2020 printing a delete message.
-* `voila /backup "@name ~= #(.*)-2020# { print(@name has been deleted) delete(@path) }`: Voila will delete every file in /backup ending in 2020 printing a delete message.
+* `voila /backup "@name ~= (.*)-2020 { print(@name has been deleted) delete(@path) }`: Voila will delete every file in /backup ending in 2020 printing a delete message.
 * `voila /something "@sum=md5 == 308uyrp028y4hp079y2hv92gbf49 { mkdir(./sums); create(./sums/@name.sum, @sum=sha256) }`: Voila will create a folder in the current directory named "sums", will search for a file with that md5 checksum, get its sha256 checksum and save it in the sums folder.
 * `voila /backup "@size=gb >= 1 { print(@name has been deleted) delete(@path) }`: Voila will delete every file in /backup weighter than 1gb printing a delete message.
 
