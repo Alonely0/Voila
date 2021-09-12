@@ -44,6 +44,7 @@ These are the available variables:
 * `readonly`: true if the file is ro (else false)
 * `elf`: true if the file is compliant to the Executable & Linkable Format (else false)
 * `txt`: true if the file is a valid text file (else false)
+* `hidden`: true if the file is hidden (else false)
 * `size=tb`: file size in terabytes
 * `size=gb`: file size in gigabytes
 * `size=mb`: file size in megabytes

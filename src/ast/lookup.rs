@@ -20,6 +20,8 @@ pub enum Lookup {
     Elf,
     /// Whether the file is a valid text file
     Text,
+    /// Whether the file is hidden
+    Hidden,
     /// The file size
     Size(SizeLabel),
     /// A computed sum of the file's contents
@@ -43,6 +45,7 @@ impl Lookup {
         "readonly",
         "elf",
         "txt",
+        "hidden",
         "size",
         "sum",
         "creation",
@@ -63,6 +66,7 @@ impl std::fmt::Display for Lookup {
             Self::Readonly => write!(f, "readonly"),
             Self::Elf => write!(f, "elf"),
             Self::Text => write!(f, "txt"),
+            Self::Hidden => write!(f, "hidden"),
             Self::Size(label) => write!(f, "size={}", label),
             Self::Sum(sum) => write!(f, "sum={}", sum),
             Self::Creation(when) => write!(f, "creation={}", when),
@@ -118,6 +122,7 @@ impl Parse<'_> for Lookup {
             "readonly" => no_spec!("readonly", Self::Readonly),
             "elf" => no_spec!("elf", Self::Elf),
             "txt" => no_spec!("txt", Self::Text),
+            "hidden" => no_spec!("hidden", Self::Hidden),
             "size" => spec!("size", SizeLabel, Self::Size),
             "sum" => spec!("sum", SumKind, Self::Sum),
             "creation" => spec!("creation", TimeStamp, Self::Creation),
@@ -292,6 +297,31 @@ impl CachedResolve for Lookup {
                     None
                 };
                 Ok(last == Some(b'\n')).map(ExprResult::from)
+            },
+            Self::Hidden => {
+                #[cfg(not(any(unix, windows)))]
+                {
+                    println!("`hidden` variable is not natively supported in the current OS, falling back to unix implementation");
+                }
+                #[cfg(not(windows))]
+                {
+                    Ok(ExprResult::from(
+                        cache
+                            .get_path()
+                            .file_name()
+                            .unwrap()
+                            .to_str()
+                            .unwrap()
+                            .starts_with('.'),
+                    ))
+                }
+                #[cfg(windows)]
+                {
+                    use std::os::windows::fs::MetadataExt;
+                    Ok(ExprResult::from(
+                        cache.get_file_metadata()?.file_attributes() & 0x2 > 0,
+                    )) // https://docs.microsoft.com/en-us/windows/win32/fileio/file-attribute-constants
+                }
             },
             Self::Creation(ts) => {
                 let created_time = cache.get_file_metadata()?.created()?;
