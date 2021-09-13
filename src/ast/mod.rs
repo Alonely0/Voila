@@ -1,6 +1,6 @@
 use super::mod_use;
 use super::parser;
-use parser::Token;
+use crate::lexer::Token;
 use std::ops::Range;
 
 // This trait will be useful later
