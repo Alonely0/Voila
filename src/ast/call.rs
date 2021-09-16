@@ -207,6 +207,7 @@ impl<'source> Parse<'source> for Call<'source> {
                 {
                     break;
                 }
+                parser.accept_current()
             }
             parser.expect_token(Token::CloseParen, Some("to end the argument list"))?;
             let end = parser.current_token_span().end;
