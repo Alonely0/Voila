@@ -52,27 +52,30 @@ impl Lookup {
         "lastChange",
         "lastAccess",
     ];
+    pub fn as_str<'source>(&self) -> &'source str {
+        match self {
+            Self::Name => "name",
+            Self::Path => "path",
+            Self::Parent => "parent",
+            #[cfg(unix)]
+            Self::OwnerID => "ownerID",
+            Self::Empty => "empty",
+            Self::Readonly => "readonly",
+            Self::Elf => "elf",
+            Self::Text => "txt",
+            Self::Hidden => "hidden",
+            Self::Size(_) => "size=",
+            Self::Sum(_) => "sum=",
+            Self::Creation(_) => "creation=",
+            Self::LastModification(_) => "lastChange",
+            Self::LastAccess(_) => "lastAccess",
+        }
+    }
 }
 
 impl std::fmt::Display for Lookup {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            Self::Name => write!(f, "name"),
-            Self::Path => write!(f, "path"),
-            Self::Parent => write!(f, "parent"),
-            #[cfg(unix)]
-            Self::OwnerID => write!(f, "ownerID"),
-            Self::Empty => write!(f, "empty"),
-            Self::Readonly => write!(f, "readonly"),
-            Self::Elf => write!(f, "elf"),
-            Self::Text => write!(f, "txt"),
-            Self::Hidden => write!(f, "hidden"),
-            Self::Size(label) => write!(f, "size={}", label),
-            Self::Sum(sum) => write!(f, "sum={}", sum),
-            Self::Creation(when) => write!(f, "creation={}", when),
-            Self::LastModification(when) => write!(f, "lastChange={}", when),
-            Self::LastAccess(when) => write!(f, "lastAccess={}", when),
-        }
+        write!(f, "{lookup}", lookup = self.as_str())
     }
 }
 

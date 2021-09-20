@@ -5,9 +5,10 @@ fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("Voila, [benchmark name here]", |b| {
         b.iter(|| {
             run(
-                black_box("@name == @name { print(@name.file); print(@a, @parent) }"),
+                black_box("@name == @name { print(@name.file); print(@a, @parent) }".to_string()),
                 black_box(std::path::PathBuf::from(env!("HOME"))),
                 black_box(true),
+                black_box(false),
             )
         })
     });

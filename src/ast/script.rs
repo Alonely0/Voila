@@ -3,13 +3,15 @@ use super::Target;
 // The script doesn't have a span, since it represents the **entire** script.
 /// The whole voila script to execute, with a bunch of [Target]s
 #[derive(Debug)]
-pub struct Script<'source>(pub Vec<Target<'source>>);
+pub struct Script<'source> {
+    pub targets: Vec<Target<'source>>,
+}
 
 use super::parser::*;
 
 impl<'source> Parse<'source> for Script<'source> {
     fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
-        parser.many_eof().map(Self)
+        parser.many_eof().map(|targets| Self { targets })
     }
 }
 
@@ -23,7 +25,7 @@ pub fn run_script(
 ) {
     let cache = Arc::new(Mutex::new(Cache::new(path)));
     pool.scope(move |s| {
-        for target in &script.0 {
+        for target in &script.targets {
             let tx = tx.clone();
             let cache = cache.clone();
             s.spawn(move |_| {

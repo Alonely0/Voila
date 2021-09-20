@@ -8,9 +8,9 @@ use std::ops::Range;
 /// instance.
 ///
 /// The interpolated string maintains an invariant: its sequence is never empty
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Str<'source> {
-    sequence: Vec<StrComponent<'source>>,
+    pub sequence: Vec<StrComponent<'source>>,
     span: Range<usize>,
 }
 
@@ -20,8 +20,8 @@ impl HasSpan for Str<'_> {
     }
 }
 
-#[derive(Debug)]
-enum StrComponent<'source> {
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum StrComponent<'source> {
     Literal(&'source str),
     Lookup(Lookup),
 }
@@ -154,5 +154,14 @@ impl interpreter::Resolve for Str<'_> {
             }
         }
         Ok(str.into())
+    }
+}
+
+impl<'source> StrComponent<'source> {
+    pub fn get_plain(&self) -> &'source str {
+        match self {
+            Self::Lookup(x) => x.as_str(),
+            Self::Literal(x) => x,
+        }
     }
 }

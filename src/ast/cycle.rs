@@ -25,7 +25,7 @@ use std::ops::Range;
 /// and the second `pritn` will be executed when the file has been deleted successfully.
 #[derive(Debug)]
 pub struct Cycle<'source> {
-    calls: Vec<Call<'source>>,
+    pub calls: Vec<Call<'source>>,
     span: Range<usize>,
 }
 
@@ -46,7 +46,7 @@ impl<'source> Parse<'source> for Cycle<'source> {
             loop {
                 match parser.expect_one_of_tokens(
                     &[Token::CloseBrace, Token::Identifier, Token::Semicolon],
-                    Some("function or end of cycle/target"),
+                    Some("safe/unsafe function or end of cycle/target"),
                 )? {
                     Token::CloseBrace => break,
                     Token::Semicolon => {
