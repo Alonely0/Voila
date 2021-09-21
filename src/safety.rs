@@ -172,7 +172,11 @@ impl<'source> IO<'source> {
                 })
                 .position_first(|x| x)
         };
-        [s(&self.created, &self.accessed), s(&self.accessed, &self.modified), s(&self.modified, &self.created)]
+        [
+            s(&self.created, &self.accessed),
+            s(&self.accessed, &self.modified),
+            s(&self.modified, &self.created),
+        ]
     }
     /// Search matches through operation types
     /// of an [IO] and returns vectors representing matches
