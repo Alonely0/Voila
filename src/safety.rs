@@ -55,7 +55,7 @@ impl From<Metadata> for [HashMap<Range<usize>, Range<usize>>; 3] {
     fn from(r: Metadata) -> Self {
         match r {
             Metadata::Multiple(x) => x,
-            _ => panic!(),
+            _ => unreachable!("this should never happen"),
         }
     }
 }
