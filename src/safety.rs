@@ -326,7 +326,9 @@ impl<'source> crate::ast::Script<'source> {
             Mkdir { safe: true } | Create { safe: true } => created = Some(args),
             Print { safe: true } => accessed = Some(args),
             Shell { safe: true } => {
-                todo!("idk what to do with this")
+                created = Some(args.clone());
+                accessed = Some(args.clone());
+                modified = Some(args.clone());
             },
             Delete { safe: true } => modified = Some(vec![args[0].clone()]),
             Move { safe: true } | GzipDecompress { safe: true } => {
