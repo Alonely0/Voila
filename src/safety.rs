@@ -325,7 +325,7 @@ impl<'source> crate::ast::Script<'source> {
 
                 // Search through different [IO] operation types
                 io.check_ops(|pos, e| {
-                    Box::new(self.raise(
+                    self.raise(
                         e,
                         source,
                         IO::get_real_md(
@@ -333,7 +333,7 @@ impl<'source> crate::ast::Script<'source> {
                             &io.metadata.get_multiple()[0],
                             cycle.calls[0].offset(),
                         ),
-                    ))
+                    )
                 })?
             }
         }
