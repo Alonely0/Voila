@@ -205,7 +205,7 @@ impl<'source> IO<'source> {
                 .map(|x| i!(v).position_first(|y| x == y) != i!(v).position_last(|y| x == y))
                 .position_first(|x| x)
         };
-        [s(&self.created), s(&self.accessed), s(&self.modified), ]
+        [s(&self.created), s(&self.accessed), s(&self.modified)]
     }
     /// Get metadata of a specific value in a combined [IO]
     fn get_real_md(
