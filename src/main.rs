@@ -25,11 +25,7 @@ For more information see the README.
         ver = env!("CARGO_PKG_VERSION")
     );
 
-    if let Err(ref e) = voila::run(
-        cli_args.source,
-        cli_args.dir,
-        cli_args.recursive,
-    ) {
+    if let Err(ref e) = voila::run(cli_args.source, cli_args.dir, cli_args.recursive) {
         eprintln!("{}", e);
         std::process::exit(1);
     }

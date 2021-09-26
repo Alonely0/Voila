@@ -17,11 +17,7 @@ pub mod macros;
 mod parser;
 mod safety;
 
-pub fn run(
-    source: String,
-    dir: std::path::PathBuf,
-    recursive: bool,
-) -> Result<(), Box<dyn Error>> {
+pub fn run(source: String, dir: std::path::PathBuf, recursive: bool) -> Result<(), Box<dyn Error>> {
     let ast = ast::parse_script(&source)?;
     ast.ub_checks(&source)?;
     interpreter::run(ast, dir, recursive)?; // wait interpreter to finish
