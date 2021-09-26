@@ -29,7 +29,6 @@ For more information see the README.
         cli_args.source,
         cli_args.dir,
         cli_args.recursive,
-        cli_args.bypass_all_checks,
     ) {
         eprintln!("{}", e);
         std::process::exit(1);

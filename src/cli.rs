@@ -24,11 +24,6 @@ pub struct Cli {
     )]
     pub recursive: bool,
     #[structopt(
-        long,
-        help = "Skips all undefined behavior checks, it's like adding `unsafe` everywhere. Use at your own risk."
-    )]
-    pub bypass_all_checks: bool,
-    #[structopt(
         name = "FOLDER",
         help = "/something/path/to/folder or ./path/to/folder"
     )]

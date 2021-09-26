@@ -21,10 +21,9 @@ pub fn run(
     source: String,
     dir: std::path::PathBuf,
     recursive: bool,
-    bypass_all_checks: bool,
 ) -> Result<(), Box<dyn Error>> {
     let ast = ast::parse_script(&source)?;
-    if !bypass_all_checks { ast.ub_checks(&source)?; }
+    ast.ub_checks(&source)?;
     interpreter::run(ast, dir, recursive)?; // wait interpreter to finish
     Ok(())
 }
