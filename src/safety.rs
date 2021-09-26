@@ -1,7 +1,10 @@
 use crate::ast::*;
+use crate::error::SourceError;
 use crate::i;
 use rayon::prelude::*;
 use std::collections::HashMap;
+use std::error::Error;
+use std::fmt;
 use std::ops::Range;
 
 type Arg<'source> = Vec<StrComponent<'source>>;
@@ -60,7 +63,28 @@ impl From<Metadata> for [HashMap<Range<usize>, Range<usize>>; 3] {
     }
 }
 
-//trait Metadata<T: Sized, O: Sized>: Any + Sized + IntoIterator<Item = T, IntoIter = O> {}
+#[derive(Debug, Copy, Clone)]
+pub enum SafetyErrorKind {
+    Created,
+    Accessed,
+    Modified,
+}
+
+impl Error for SafetyErrorKind {}
+
+impl fmt::Display for SafetyErrorKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("This call ").unwrap();
+        match self {
+            SafetyErrorKind::Created => f.write_str("creates "),
+            SafetyErrorKind::Accessed => f.write_str("accesses "),
+            SafetyErrorKind::Modified => f.write_str("modifies "),
+        }.unwrap();
+        f.write_str("a file while another creates, accesses or modifies it at the same time (consider using multiple cycles or targets)")
+    }
+}
+
+
 impl<'source> IO<'source> {
     /// New [IO]
     fn new(
@@ -227,44 +251,53 @@ impl<'source> IO<'source> {
         return real;
     }
     /// Check for matches through operations
-    fn cross_check_io_ops<F>(&self, err_cb: F)
+    fn cross_check_io_ops<T, F: Copy>(&self, err_cb: &F) -> Result<(), T>
     where
-        F: FnOnce(usize, &'source str) -> !,
+        F: FnOnce(usize, SafetyErrorKind) -> T,
     {
         let [created, modified, accessed] = self.cross_search_matches();
-        if let Some(pos) = created {
-            err_cb(pos, "created")
+        let mut pos = None;
+        let mut msg = None;
+        if let Some(position) = created {
+            pos = Some(position);
+            msg = Some(SafetyErrorKind::Created);
+        } else if let Some(position) = accessed {
+            pos = Some(position);
+            msg = Some(SafetyErrorKind::Accessed);
+        } else if let Some(position) = modified {
+            pos = Some(position);
+            msg = Some(SafetyErrorKind::Modified);
         }
-        if let Some(pos) = modified {
-            err_cb(pos, "modified")
-        }
-        if let Some(pos) = accessed {
-            err_cb(pos, "accessed")
+        if pos.is_some() && msg.is_some() {
+            Err(err_cb(pos.unwrap(), msg.unwrap()))
+        } else {
+            Ok(())
         }
     }
     /// Check for matches through every operation
-    fn plain_check_io_ops<F>(&self, err_cb: F)
+    fn plain_check_io_ops<T, F: Copy>(&self, err_cb: &F) -> Result<(), T>
     where
-        F: FnOnce(usize, &'source str) -> !,
+        F: FnOnce(usize, SafetyErrorKind) -> T,
     {
         let [created, modified, accessed] = self.plain_search_matches();
         if let Some(pos) = created {
-            err_cb(pos, "created")
-        }
-        if let Some(pos) = modified {
-            err_cb(pos, "modified")
-        }
-        if let Some(pos) = accessed {
-            err_cb(pos, "accessed")
+            Err(err_cb(pos, SafetyErrorKind::Created))
+        } else if let Some(pos) = accessed {
+            Err(err_cb(pos, SafetyErrorKind::Accessed))
+        } else if let Some(pos) = modified {
+            Err(err_cb(pos, SafetyErrorKind::Modified))
+        } else {
+            Ok(())
         }
     }
     /// a wrapper over plain and cross checks
-    fn check_ops<F: Copy>(&self, err_cb: F)
+    fn check_ops<T, F: Copy>(&self, err_cb: F) -> Result<(), T>
     where
-        F: FnOnce(usize, &'source str) -> !,
+        F: FnOnce(usize, SafetyErrorKind) -> T,
     {
-        self.cross_check_io_ops(err_cb);
-        self.plain_check_io_ops(err_cb);
+        self.cross_check_io_ops(&err_cb)?;
+        self.plain_check_io_ops(&err_cb)?;
+        Ok(())
     }
 }
 
@@ -274,7 +307,7 @@ impl<'source> crate::ast::Script<'source> {
     /// possible undefined-behavior cases, if there
     /// are, it'll prevent voila from running unless
     /// you opt-out of it with `--bypass-all-checks`
-    pub fn ub_checks(&self, source: &'source str) {
+    pub fn ub_checks(&self, source: &'source str) -> Result<(), Box<dyn Error>> {
         // for every target
         for target in &self.targets {
             // go through its cycles
@@ -302,18 +335,19 @@ impl<'source> crate::ast::Script<'source> {
 
                 // Search through different [IO] operation types
                 io.check_ops(|pos, e| {
-                    self.raise(
-                        &format!("this call {e} a file while another one creates, accesses or modifies it"),
-                        source,
+                    Box::new(self.raise(
+                        e,
+                        &source,
                         IO::get_real_md(
                             pos,
                             &io.metadata.get_multiple()[0],
                             cycle.calls[0].offset(),
                         ),
-                    )
-                });
+                    ))
+                })?
             }
         }
+        Ok(())
     }
     fn action(&self, func: Function, args: Args<'source>, metadata: Metadata) -> IO<'source> {
         use Function::*;
@@ -343,16 +377,16 @@ impl<'source> crate::ast::Script<'source> {
         }
         IO::new(created, accessed, modified, metadata)
     }
-    fn raise(&self, err: &'source str, code: &'source str, span: Range<usize>) -> ! {
-        use crate::error::SourceError;
-        use std::process;
-
+    fn raise(
+        &self,
+        err: SafetyErrorKind,
+        code: &str,
+        span: Range<usize>,
+    ) -> SourceError<SafetyErrorKind, &'static str> {
         let mut error = SourceError::new(err);
         error = error.with_source(span, code);
         error = error.with_context("checking possible undefined behavior cases");
         error = error.with_context("checking data races");
-        eprintln!("{error}");
-        drop(error);
-        process::exit(1)
+        error
     }
 }
