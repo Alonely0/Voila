@@ -79,11 +79,11 @@ impl fmt::Display for SafetyErrorKind {
             SafetyErrorKind::Created => f.write_str("creates "),
             SafetyErrorKind::Accessed => f.write_str("accesses "),
             SafetyErrorKind::Modified => f.write_str("modifies "),
-        }.unwrap();
+        }
+        .unwrap();
         f.write_str("a file while another creates, accesses or modifies it at the same time (consider using multiple cycles or targets)")
     }
 }
-
 
 impl<'source> IO<'source> {
     /// New [IO]
@@ -179,17 +179,14 @@ impl<'source> IO<'source> {
                 .map(|x| {
                     i!(p).position_first(|y| {
                         x == y
-                            || y.iter()
-                                .any(|x| {
-                                    Self::ACCESS_VARS
-                                        .iter()
-                                        .any(|&y| {
-                                            y.starts_with(match x {
-                                                StrComponent::Lookup(z) => z.as_str(),
-                                                _ => "",
-                                            })
-                                        })
+                            || y.iter().any(|x| {
+                                Self::ACCESS_VARS.iter().any(|&y| {
+                                    y.starts_with(match x {
+                                        StrComponent::Lookup(z) => z.as_str(),
+                                        _ => "",
+                                    })
                                 })
+                            })
                     }) != None
                 })
                 .position_first(|x| x)
@@ -231,13 +228,13 @@ impl<'source> IO<'source> {
         offset: usize,
     ) -> Range<usize> {
         let mut real = 0..0;
-        md
-            .iter()
+        md.iter()
             .map(|x| {
                 if x.1.contains(&(offset + pos)) {
                     real = x.1.to_owned();
                 }
-            }).count();
+            })
+            .count();
         real
     }
     /// Check for matches through operations
