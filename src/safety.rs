@@ -200,26 +200,12 @@ impl<'source> IO<'source> {
     /// Search matches through operation types
     /// of an [IO] and returns vectors representing matches
     fn plain_search_matches(&self) -> [Option<usize>; 3] {
-        [
-            i!(self.created)
-                .map(|x| {
-                    i!(self.created).position_first(|y| x == y)
-                        != i!(self.created).position_last(|y| x == y)
-                })
-                .position_first(|x| x),
-            i!(self.modified)
-                .map(|x| {
-                    i!(self.modified).position_first(|y| x == y)
-                        != i!(self.modified).position_last(|y| x == y)
-                })
-                .position_first(|x| x),
-            i!(self.accessed)
-                .map(|x| {
-                    i!(self.accessed).position_first(|y| x == y)
-                        != i!(self.accessed).position_last(|y| x == y)
-                })
-                .position_first(|x| x),
-        ]
+        let s = |v: &Option<Args<'source>>| {
+            i!(v)
+                .map(|x| i!(v).position_first(|y| x == y) != i!(v).position_last(|y| x == y))
+                .position_first(|x| x)
+        };
+        [s(&self.created), s(&self.accessed), s(&self.modified), ]
     }
     /// Get metadata of a specific value in a combined [IO]
     fn get_real_md(
@@ -242,7 +228,7 @@ impl<'source> IO<'source> {
     where
         F: FnOnce(usize, SafetyErrorKind) -> T,
     {
-        let [created, modified, accessed] = self.cross_search_matches();
+        let [created, accessed, modified] = self.cross_search_matches();
         let mut pos = None;
         let mut msg = None;
         if let Some(position) = created {
@@ -266,7 +252,7 @@ impl<'source> IO<'source> {
     where
         F: FnOnce(usize, SafetyErrorKind) -> T,
     {
-        let [created, modified, accessed] = self.plain_search_matches();
+        let [created, accessed, modified] = self.plain_search_matches();
         if let Some(pos) = created {
             Err(err_cb(pos, SafetyErrorKind::Created))
         } else if let Some(pos) = accessed {
