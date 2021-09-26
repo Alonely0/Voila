@@ -232,14 +232,20 @@ impl<'source> IO<'source> {
         let mut pos = None;
         let mut msg = None;
         if let Some(position) = created {
-            pos = Some(position);
-            msg = Some(SafetyErrorKind::Created);
+            if position != 0 {
+                pos = Some(position);
+                msg = Some(SafetyErrorKind::Created);
+            }
         } else if let Some(position) = accessed {
-            pos = Some(position);
-            msg = Some(SafetyErrorKind::Accessed);
+            if position != 0 {
+                pos = Some(position);
+                msg = Some(SafetyErrorKind::Accessed);
+            }
         } else if let Some(position) = modified {
-            pos = Some(position);
-            msg = Some(SafetyErrorKind::Modified);
+            if position != 0 {
+                pos = Some(position);
+                msg = Some(SafetyErrorKind::Modified);
+            }
         }
         if let (Some(p), Some(m)) = (pos, msg) {
             Err(err_cb(p, m))
@@ -254,11 +260,23 @@ impl<'source> IO<'source> {
     {
         let [created, accessed, modified] = self.plain_search_matches();
         if let Some(pos) = created {
-            Err(err_cb(pos, SafetyErrorKind::Created))
+            if pos != 0 {
+                Err(err_cb(pos, SafetyErrorKind::Created))
+            } else {
+                Ok(())
+            }
         } else if let Some(pos) = accessed {
-            Err(err_cb(pos, SafetyErrorKind::Accessed))
+            if pos != 0 {
+                Err(err_cb(pos, SafetyErrorKind::Accessed))
+            } else {
+                Ok(())
+            }
         } else if let Some(pos) = modified {
-            Err(err_cb(pos, SafetyErrorKind::Modified))
+            if pos != 0 {
+                Err(err_cb(pos, SafetyErrorKind::Modified))
+            } else {
+                Ok(())
+            }
         } else {
             Ok(())
         }
