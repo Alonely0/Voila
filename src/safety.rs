@@ -355,14 +355,14 @@ impl<'source> crate::ast::Script<'source> {
                 accessed = Some(args.clone());
                 modified = Some(args.clone());
             },
-            Delete { safe: true } => modified = Some(vec![args[0].clone()]),
+            Delete { safe: true } => modified = Some(vec![args.get(0).unwrap_or(&Vec::new()).to_vec()]),
             Move { safe: true } | GzipDecompress { safe: true } => {
-                modified = Some(vec![args[0].clone()]);
-                created = Some(vec![args[1].clone()]);
+                modified = Some(vec![args.get(0).unwrap_or(&Vec::new()).to_vec()]);
+                created = Some(vec![args.get(1).unwrap_or(&Vec::new()).to_vec()]);
             },
             Copy { safe: true } | GzipCompress { safe: true } => {
-                accessed = Some(vec![args[0].clone()]);
-                created = Some(vec![args[1].clone()]);
+                accessed = Some(vec![args.get(0).unwrap_or(&Vec::new()).to_vec()]);
+                created = Some(vec![args.get(1).unwrap_or(&Vec::new()).to_vec()]);
             },
             _ => unreachable!(),
         }
