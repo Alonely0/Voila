@@ -180,18 +180,16 @@ impl<'source> IO<'source> {
                     i!(p).position_first(|y| {
                         x == y
                             || y.iter()
-                                .find(|&x| {
+                                .any(|x| {
                                     Self::ACCESS_VARS
                                         .iter()
-                                        .find(|&&y| {
+                                        .any(|&y| {
                                             y.starts_with(match x {
                                                 StrComponent::Lookup(z) => z.as_str(),
                                                 _ => "",
                                             })
                                         })
-                                        .is_some()
                                 })
-                                .is_some()
                     }) != None
                 })
                 .position_first(|x| x)
@@ -233,22 +231,14 @@ impl<'source> IO<'source> {
         offset: usize,
     ) -> Range<usize> {
         let mut real = 0..0;
-        for x in md
+        md
             .iter()
             .map(|x| {
                 if x.1.contains(&(offset + pos)) {
-                    Some(x.1)
-                } else {
-                    None
+                    real = x.1.to_owned();
                 }
-            })
-            .collect::<Vec<Option<&Range<usize>>>>()
-        {
-            if let Some(s) = x {
-                real = s.to_owned()
-            }
-        }
-        return real;
+            }).count();
+        real
     }
     /// Check for matches through operations
     fn cross_check_io_ops<T, F: Copy>(&self, err_cb: &F) -> Result<(), T>
@@ -268,8 +258,8 @@ impl<'source> IO<'source> {
             pos = Some(position);
             msg = Some(SafetyErrorKind::Modified);
         }
-        if pos.is_some() && msg.is_some() {
-            Err(err_cb(pos.unwrap(), msg.unwrap()))
+        if let (Some(p), Some(m)) = (pos, msg) {
+            Err(err_cb(p, m))
         } else {
             Ok(())
         }
@@ -337,7 +327,7 @@ impl<'source> crate::ast::Script<'source> {
                 io.check_ops(|pos, e| {
                     Box::new(self.raise(
                         e,
-                        &source,
+                        source,
                         IO::get_real_md(
                             pos,
                             &io.metadata.get_multiple()[0],
