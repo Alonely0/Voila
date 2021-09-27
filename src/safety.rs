@@ -180,11 +180,11 @@ impl<'source> IO<'source> {
                     i!(p).position_first(|y| {
                         x == y
                             || y.iter().any(|x| {
-                                Self::ACCESS_VARS.iter().any(|&y| {
-                                    y.starts_with(match x {
+                                Self::ACCESS_VARS.iter().any(|&v| {
+                                    v == match x {
                                         StrComponent::Lookup(z) => z.as_str(),
                                         _ => "",
-                                    })
+                                    }
                                 })
                             })
                     }) != None
@@ -232,20 +232,14 @@ impl<'source> IO<'source> {
         let mut pos = None;
         let mut msg = None;
         if let Some(position) = created {
-            if position != 0 {
-                pos = Some(position);
-                msg = Some(SafetyErrorKind::Created);
-            }
+            pos = Some(position);
+            msg = Some(SafetyErrorKind::Created);
         } else if let Some(position) = accessed {
-            if position != 0 {
-                pos = Some(position);
-                msg = Some(SafetyErrorKind::Accessed);
-            }
+            pos = Some(position);
+            msg = Some(SafetyErrorKind::Accessed);
         } else if let Some(position) = modified {
-            if position != 0 {
-                pos = Some(position);
-                msg = Some(SafetyErrorKind::Modified);
-            }
+            pos = Some(position);
+            msg = Some(SafetyErrorKind::Modified);
         }
         if let (Some(p), Some(m)) = (pos, msg) {
             Err(err_cb(p, m))
@@ -260,23 +254,11 @@ impl<'source> IO<'source> {
     {
         let [created, accessed, modified] = self.plain_search_matches();
         if let Some(pos) = created {
-            if pos != 0 {
-                Err(err_cb(pos, SafetyErrorKind::Created))
-            } else {
-                Ok(())
-            }
+            Err(err_cb(pos, SafetyErrorKind::Created))
         } else if let Some(pos) = accessed {
-            if pos != 0 {
-                Err(err_cb(pos, SafetyErrorKind::Accessed))
-            } else {
-                Ok(())
-            }
+            Err(err_cb(pos, SafetyErrorKind::Accessed))
         } else if let Some(pos) = modified {
-            if pos != 0 {
-                Err(err_cb(pos, SafetyErrorKind::Modified))
-            } else {
-                Ok(())
-            }
+            Err(err_cb(pos, SafetyErrorKind::Modified))
         } else {
             Ok(())
         }
@@ -355,7 +337,9 @@ impl<'source> crate::ast::Script<'source> {
                 accessed = Some(args.clone());
                 modified = Some(args.clone());
             },
-            Delete { safe: true } => modified = Some(vec![args.get(0).unwrap_or(&Vec::new()).to_vec()]),
+            Delete { safe: true } => {
+                modified = Some(vec![args.get(0).unwrap_or(&Vec::new()).to_vec()])
+            },
             Move { safe: true } | GzipDecompress { safe: true } => {
                 modified = Some(vec![args.get(0).unwrap_or(&Vec::new()).to_vec()]);
                 created = Some(vec![args.get(1).unwrap_or(&Vec::new()).to_vec()]);
