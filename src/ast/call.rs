@@ -258,8 +258,10 @@ impl<'source> Parse<'source> for Call<'source> {
     }
 }
 use crate::interpreter::{Cache, ErrorKind, ExprResult};
-
+use std::path::PathBuf;
+use path_absolutize::*;
 use std::sync::{Arc, Mutex};
+
 pub fn run_call(call: &Call, cache: Arc<Mutex<Cache>>) -> Result<(), ErrorKind> {
     use crate::interpreter::ArgCountMismatched;
 
@@ -332,20 +334,32 @@ fn delete(files: Vec<String>) -> Result<(), io::Error> {
 
 fn delete_file_or_dir(target: &str) -> Result<(), io::Error> {
     use std::fs;
+    let mut t = PathBuf::from(target);
     let metadata = match fs::metadata(target) {
         Ok(meta) => meta,
         Err(_) => return Ok(()),
     };
+
+    if t.is_relative() {
+        t = t.absolutize()?.into();
+    }
+
     if metadata.is_dir() {
-        fs::remove_dir_all(target)
+        fs::remove_dir_all(t)
     } else {
-        fs::remove_file(target)
+        fs::remove_file(t)
     }
 }
 
-use std::path::PathBuf;
-fn copy_file_or_dir(source: PathBuf, mut dest: PathBuf) -> Result<(), io::Error> {
+fn copy_file_or_dir(mut source: PathBuf, mut dest: PathBuf) -> Result<(), io::Error> {
     use std::fs;
+
+    if source.is_relative() {
+        source = source.absolutize()?.into();
+    }
+    if dest.is_relative() {
+        dest = dest.absolutize()?.into();
+    }
 
     if dest.exists() && dest.is_dir() {
         dest = dest.join(
@@ -357,10 +371,11 @@ fn copy_file_or_dir(source: PathBuf, mut dest: PathBuf) -> Result<(), io::Error>
     }
 
     if source.is_dir() {
-        fs::create_dir_all(dest)
+        fs::create_dir_all(dest)?;
     } else {
-        fs::copy(source, dest).map(|_| {})
+        fs::copy(source, dest)?;
     }
+    Ok(())
 }
 
 fn move_file(source: &str, dest: &str) -> Result<(), io::Error> {
@@ -369,10 +384,9 @@ fn move_file(source: &str, dest: &str) -> Result<(), io::Error> {
 }
 
 fn gzc(source: &str, dest: &str) -> Result<(), io::Error> {
-    use std::fs;
-
     use flate2::write::GzEncoder;
     use flate2::Compression;
+    use std::fs;
 
     let dest = fs::File::create(dest)?;
     let encoder = GzEncoder::new(dest, Compression::default());

@@ -46,6 +46,7 @@ chrono = "0.4.19"
 flate2 = "1.0.21"
 tar = "0.4.37"
 ansi_term = "0.12.1"
+path-absolutize = "3.0.11"
 
 [dev-dependencies]
 criterion = "0.3.5"
