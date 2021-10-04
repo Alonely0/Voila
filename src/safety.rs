@@ -358,10 +358,9 @@ impl<'source> crate::ast::Script<'source> {
         code: &str,
         span: Range<usize>,
     ) -> SourceError<SafetyErrorKind, &'static str> {
-        let mut error = SourceError::new(err);
-        error = error.with_source(span, code);
-        error = error.with_context("checking possible undefined behavior cases");
-        error = error.with_context("checking data races");
-        error
+        SourceError::new(err)
+            .with_source(span, code)
+            .with_context("checking possible undefined behavior cases")
+            .with_context("checking data races")
     }
 }
