@@ -2,7 +2,7 @@ use super::HasSpan;
 use super::{Cycle, Expr};
 use std::ops::Range;
 
-/// A targeto is the combination of an (optional) [Expr] as its condition
+/// A target is the combination of an (optional) [Expr] as its condition
 /// and a block of [Cycle]s to execute.
 ///
 /// # Examples

@@ -21,8 +21,9 @@ use std::ops::Range;
 /// integration of Voila to the rest of the system.
 #[derive(Debug)]
 pub struct Call<'source> {
-    function_kind: Function,
-    arguments: Vec<Str<'source>>,
+    pub function_kind: Function,
+    pub arguments: Vec<Str<'source>>,
+    pub safe: bool,
     span: Range<usize>,
 }
 
@@ -41,14 +42,14 @@ pub enum Function {
     /// `mkdir` receives at least one argument: the path to create.
     /// You can put more directories to create, but make sure to separate them
     /// by commas!
-    Mkdir,
+    Mkdir { safe: bool },
     /// Print something to standard output
     ///
     /// # Call format
     /// `print` receives a variadic number of arguments which it prints
     /// separated by spaces (similar to python's print function without parameters), and a newline
     /// after.
-    Print,
+    Print { safe: bool },
     /// Execute a command in a shell
     ///
     /// # Call format
@@ -58,7 +59,7 @@ pub enum Function {
     ///
     /// # Safety
     /// This function may modify the outer system!
-    Shell,
+    Shell { safe: bool },
     /// Delete the given files/directories
     ///
     /// # Call format
@@ -70,7 +71,7 @@ pub enum Function {
     /// `delete` will modify the outer system! Make sure that you're not doing
     /// accesses to the file in the argument on the same cycle, otherwise you will
     /// get undefined behavior.
-    Delete,
+    Delete { safe: bool },
     /// Moves or renames a file, with a similar behavior to the `mv` command.
     ///
     /// # Call format
@@ -78,7 +79,7 @@ pub enum Function {
     ///
     /// # Safety
     /// `move` is a destructive call, so please make sure that you're not using it with the same file in the same cycle. Refer to [`Function::Delete`] for details
-    Move,
+    Move { safe: bool },
     /// Copy a file or a directory. Directories are copied recursively.
     ///
     /// # Call format
@@ -87,7 +88,7 @@ pub enum Function {
     /// # Safety
     /// `copy` might overwrite files in the system, so use it carefully! Avoid using it in the same
     /// cycle unless you can prove it's safe to do so.
-    Copy,
+    Copy { safe: bool },
     /// Gzip a file or a directory. Directories are gzipped recursively.
     ///
     // NOTE: please rename this to `gzip` and `gunzip` like the binutils
@@ -98,7 +99,7 @@ pub enum Function {
     ///
     /// # Safety
     /// Since `gzc` has an output file. it may overwrite another that's in the system.
-    GzipCompress,
+    GzipCompress { safe: bool },
     /// Gunzip a file into a file/directory.
     ///
     /// # Call format
@@ -108,7 +109,7 @@ pub enum Function {
     ///
     /// # Safety
     /// since `gzd` has an output directory, it may overwrite a lot af files! Use with care.
-    GzipDecompress,
+    GzipDecompress { safe: bool },
     /// Create a file, with optional contents
     ///
     /// # Call format
@@ -116,55 +117,90 @@ pub enum Function {
     ///
     /// # Safety
     /// `create` will modify the file system!
-    Create,
+    Create { safe: bool },
 }
 
 impl Function {
     pub const fn minimum_arg_count(&self) -> u8 {
         match self {
-            Self::Copy | Self::Move | Self::GzipCompress | Self::GzipDecompress => 2,
-            Self::Delete | Self::Shell | Self::Mkdir | Self::Create => 1,
-            Self::Print => 0,
+            Self::Copy { safe: _ }
+            | Self::Move { safe: _ }
+            | Self::GzipCompress { safe: _ }
+            | Self::GzipDecompress { safe: _ } => 2,
+            Self::Delete { safe: _ }
+            | Self::Shell { safe: _ }
+            | Self::Mkdir { safe: _ }
+            | Self::Create { safe: _ } => 1,
+            Self::Print { safe: _ } => 0,
         }
     }
-    fn from_name(source: &str) -> Option<Self> {
-        Some(match source {
-            "copy" => Self::Copy,
-            "move" => Self::Move,
-            "gzc" => Self::GzipCompress,
-            "gzd" => Self::GzipDecompress,
-            "delete" => Self::Delete,
-            "shell" => Self::Shell,
-            "mkdir" => Self::Mkdir,
-            "print" => Self::Print,
-            "create" => Self::Create,
+    fn from_name(source: &str, safe: bool) -> Option<Self> {
+        Some(match source.trim() {
+            "copy" => Self::Copy { safe },
+            "move" => Self::Move { safe },
+            "gzc" => Self::GzipCompress { safe },
+            "gzd" => Self::GzipDecompress { safe },
+            "delete" => Self::Delete { safe },
+            "shell" => Self::Shell { safe },
+            "mkdir" => Self::Mkdir { safe },
+            "print" => Self::Print { safe },
+            "create" => Self::Create { safe },
             _ => return None,
         })
+    }
+    fn is_safe(&self) -> bool {
+        match *self {
+            Function::Mkdir { safe } => safe,
+            Function::Print { safe } => safe,
+            Function::Shell { safe } => safe,
+            Function::Delete { safe } => safe,
+            Function::Move { safe } => safe,
+            Function::Copy { safe } => safe,
+            Function::GzipCompress { safe } => safe,
+            Function::GzipDecompress { safe } => safe,
+            Function::Create { safe } => safe,
+        }
     }
 }
 
 impl fmt::Display for Function {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match self {
-            Self::Copy => "copy",
-            Self::Move => "move",
-            Self::GzipCompress => "gzc",
-            Self::GzipDecompress => "gzd",
-            Self::Delete => "delete",
-            Self::Shell => "shell",
-            Self::Mkdir => "mkdir",
-            Self::Print => "print",
-            Self::Create => "create",
+            Self::Copy { safe: _ } => "copy",
+            Self::Move { safe: _ } => "move",
+            Self::GzipCompress { safe: _ } => "gzc",
+            Self::GzipDecompress { safe: _ } => "gzd",
+            Self::Delete { safe: _ } => "delete",
+            Self::Shell { safe: _ } => "shell",
+            Self::Mkdir { safe: _ } => "mkdir",
+            Self::Print { safe: _ } => "print",
+            Self::Create { safe: _ } => "create",
         })
     }
 }
 
 impl Parse<'_> for Function {
     fn parse(parser: &mut Parser) -> ParseRes<Self> {
-        // this doesn't accept the token because it is accepted by the calling parser (`Call`), so
-        // it can use the identifier start as a more accurrate start of the function span.
-        let src = parser.expect_token(Token::Identifier, Some("as the name of the function"))?;
-        Self::from_name(src).ok_or_else(|| parser.error(ParseErrorKind::UnknownFunction))
+        // this doesn't accept the token (unless unsafe is found) because
+        // it is accepted by the calling parser (`Call`), so it can use
+        // the identifier start as a more accurate start of the function span.
+        let mut safe = true;
+        let mut src = parser.expect_token(
+            Token::Identifier,
+            Some("as the name of the function or unsafe statement"),
+        )?;
+        if src == "unsafe" {
+            safe = false;
+            parser.accept_current();
+            src = parser.expect_token(Token::Identifier, Some("as the name of the function"))?
+        }
+        Self::from_name(src, safe).ok_or_else(|| parser.error(ParseErrorKind::UnknownFunction))
+    }
+}
+
+impl<'source> Call<'source> {
+    pub fn offset(&self) -> usize {
+        self.span.start
     }
 }
 
@@ -215,6 +251,7 @@ impl<'source> Parse<'source> for Call<'source> {
             Ok(Self {
                 function_kind,
                 arguments,
+                safe: function_kind.is_safe(),
                 span: start..end,
             })
         })
@@ -247,15 +284,17 @@ pub fn run_call(call: &Call, cache: Arc<Mutex<Cache>>) -> Result<(), ErrorKind> 
 
     // todo: error contexts in interpreter errors...
     match call.function_kind {
-        Function::Print => print(args),
-        Function::Create => create(&args[0], args.get(1).map(String::as_str)),
-        Function::Mkdir => mkdir(args),
-        Function::Delete => delete(args),
-        Function::Copy => copy_file_or_dir(args[0].as_str().into(), args[1].as_str().into()),
-        Function::Move => move_file(&args[0], &args[1]),
-        Function::GzipCompress => gzc(&args[0], &args[1]),
-        Function::GzipDecompress => gzd(&args[0], &args[1]),
-        Function::Shell => shell(args),
+        Function::Print { safe: _ } => print(args),
+        Function::Create { safe: _ } => create(&args[0], args.get(1).map(String::as_str)),
+        Function::Mkdir { safe: _ } => mkdir(args),
+        Function::Delete { safe: _ } => delete(args),
+        Function::Copy { safe: _ } => {
+            copy_file_or_dir(args[0].as_str().into(), args[1].as_str().into())
+        },
+        Function::Move { safe: _ } => move_file(&args[0], &args[1]),
+        Function::GzipCompress { safe: _ } => gzc(&args[0], &args[1]),
+        Function::GzipDecompress { safe: _ } => gzd(&args[0], &args[1]),
+        Function::Shell { safe: _ } => shell(args),
     }
     .map_err(Into::into)
 }

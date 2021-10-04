@@ -14,3 +14,12 @@ macro_rules! mod_use {
         )+
     };
 }
+
+#[macro_export]
+macro_rules! i {
+    { $x:expr } => {
+    $x.as_ref()
+    .unwrap_or(&Vec::new())
+    .par_iter()
+    }
+}
