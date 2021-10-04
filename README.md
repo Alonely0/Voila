@@ -68,16 +68,12 @@ These are the available operations/functions:
 * `print`: prints something to the terminal (not to the printer lol)
 * `create`: creates a file, with its content as second argument
 * `mkdir`: cretes a folder/directory
-* `delete`: deletes file/directory ⚠️
-* `move`: moves a file or a folder/directory ⚠️
+* `delete`: deletes file/directory
+* `move`: moves a file or a folder/directory
 * `copy`: copies a file or a folder/directory
 * `gzc`: compress file using gzip. first argument is the file to compress, the second is the file to save the compressed file
 * `gzd`: decompress file using gzip. first argument is the file to compress, the second is be file to save the compressed file
-* `shell`: gives a command to the Bourne Shell (`sh`) in Unix systems (like Linux or macOS), and a command to PowerShell (`powershell`) in Windows systems. Exists for doing things Voila functions can't, for example, send a dbus message. ⚠️
-
-**⚠️ WARNING: If you use functions that access and/or modify the same file/directory in the same cycle it could cause undefined behavior because the file would be accessed and overwritten at the same time. For avoiding that, consider splitting those functions into different cycles. A workaround is being discussed in [#5](https://github.com/Alonely0/Voila/issues/5)**
-
-[![forthebadge](https://forthebadge.com/images/badges/not-a-bug-a-feature.svg)](https://forthebadge.com)
+* `shell`: gives a command to the Bourne Shell (`sh`) in Unix systems (like Linux or macOS), or a command to PowerShell (`powershell`) in Windows systems. Exists for doing things Voila functions can't, for example, send a dbus message.
 
 ### Examples
 
@@ -92,9 +88,21 @@ These are the available operations/functions:
 * `-h, --help`: Displays help.
 * `-v, --version`: Displays installed version of Voila, if any.
 
+## Safety
+Voila can be somewhat dangerous, because it lets you use the multi-thread power for doing stuff to your files, so it could cause a data race. Here comes the safety checker. It's not perfect but does (somewhat) good its job at spotting possible data races, but false positives are always possible, so if you encounter one please [let us know](https://github.com/Alonely0/voila/issues/new?assignees=Alonely0&labels=bug&template=bug_report.md&title=False+positive+on+safety+checker) so we can fix it ASAP!
+
+If the safety checker finds a possible data race it will likely tell you which call is doing something while another one does stuff to the same file at the same time. So you can do 2 things:
+
+Let's put as example this little script: `@name ~= .*awesome_file { copy(@name, @parent/@name.x) move(@name, @parent/@name.y) }`
+* Move operations to another cycle or target:
+  * `@name ~= awesome_file { copy(@name, @parent/@name.x); move(@name, @parent/@name.y) }` First files will be copied and subsequently moved.
+  * `@name ~= awesome_file { move(@name, @parent/@name.y) } @name ~= .*awesome_file.y { copy(@name, @parent/@name.x) }` If the first operations modify files in a way we can't match anymore with the first conditional, we must add another target which would be able to match files with the new modifications applying then the desired operations.
+* Use the `unsafe` keyword on one of the functions (just if you're sure of what you are doing):
+  * `@name ~= awesome_file { unsafe copy(@name, @parent/x) move(@name, @parent/y) }` In this particular case, it doesn't have why to cause a data race, as the filesystem *should* be smart enough for dealing with that.
+
 # Installation
 
-You can install voila by cloning the repository and compiling or by `cargo install voila`. I have planned to provide prebuilt binaries soon.
+You can install voila by cloning the repository and compiling or by executing `cargo install voila` (which essentially does the same). I have planned to provide prebuilt binaries soon.
 
 # Submitting
 
