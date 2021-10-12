@@ -1,11 +1,14 @@
-#![forbid(unsafe_code)] // unsafe code makes ferris get nervous
+//#![forbid(unsafe_code)] // unsafe code makes ferris get nervous
 #![feature(format_args_capture)]
 #![feature(decl_macro)]
 #![allow(clippy::upper_case_acronyms)]
 
+use voila;
 use voila::macros::println_on_debug;
 
 mod cli;
+mod compiler;
+mod runtime;
 
 fn main() {
     let cli_args: cli::Cli = cli::get_cli_args();
@@ -24,10 +27,15 @@ For more information see the README.
 ------------------------------  VOILA EXECUTION STARTED  ------------------------------"#,
         ver = env!("CARGO_PKG_VERSION")
     );
+    let target = if cli_args.compile {
+        runtime::compile
+    } else {
+        runtime::interpret
+    };
 
-    if let Err(ref e) = voila::run(cli_args.source, cli_args.dir, cli_args.recursive) {
-        eprintln!("{}", e);
-        std::process::exit(1);
+    if let Err(e) = target(cli_args) {
+        eprintln!("{e}");
+        runtime::exit(1);
     }
 
     println_on_debug!(

@@ -1,6 +1,7 @@
 use super::HasSpan;
 use super::Str;
 use super::Token;
+use serde_derive::{Deserialize, Serialize};
 use std::ops::Range;
 
 // TODO: update `Expr` docs when static analyzer is brought into life
@@ -26,7 +27,7 @@ use std::ops::Range;
 /// ```voila
 /// @sha256sum ~= #.*e0.*# { ... }
 /// ```
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum Expr<'source> {
     Value(Str<'source>),
     Binary {
@@ -62,7 +63,7 @@ impl HasSpan for Expr<'_> {
 /// become true for the moment. There are plans to forbid this in the future with a static
 /// analyzer.
 ///
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum Operator {
     /// `!=`: True if the two sides are strictly not equal.
     NEquals,

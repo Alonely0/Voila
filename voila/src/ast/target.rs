@@ -1,5 +1,6 @@
 use super::HasSpan;
 use super::{Cycle, Expr};
+use serde_derive::{Deserialize, Serialize};
 use std::ops::Range;
 
 /// A target is the combination of an (optional) [Expr] as its condition
@@ -13,7 +14,7 @@ use std::ops::Range;
 /// ```voila
 /// { print(Found @name => @path) }
 /// ```
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Target<'source> {
     pub condition: Option<Expr<'source>>,
     pub cycles: Vec<Cycle<'source>>,

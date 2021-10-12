@@ -18,6 +18,11 @@ Source code at https://github.com/alonely0/voila"#,
 )]
 pub struct Cli {
     #[structopt(
+        long,
+        help = "Compile Voila script into a static binary embedding all runtime"
+    )]
+    pub compile: bool,
+    #[structopt(
         short,
         long,
         help = "Operate recursively inside the directory provided"

@@ -12,7 +12,7 @@ mod hash;
 pub use hash::*;
 
 pub fn run(
-    script: Script<'_>,
+    script: Script,
     directory: std::path::PathBuf,
     recursive: bool,
 ) -> Result<(), Box<dyn Error>> {

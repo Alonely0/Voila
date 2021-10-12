@@ -1,7 +1,8 @@
 use super::parser::{Parse, ParseErrorKind, ParseRes, Parser};
 use crate::interpreter::{Hash, Hasher};
+use serde_derive::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Lookup {
     /// The file name (basename)
     Name,
@@ -137,7 +138,7 @@ impl Parse<'_> for Lookup {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SizeLabel {
     TeraBytes,
     GigaBytes,
@@ -172,7 +173,7 @@ impl std::fmt::Display for SizeLabel {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SumKind {
     Md5,
     Sha1,
@@ -209,7 +210,7 @@ impl SumKind {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TimeStamp {
     /// Presented to the user as yyyy-mm-dd
     Date,

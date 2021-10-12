@@ -1,5 +1,6 @@
 use super::Call;
 use super::HasSpan;
+use serde_derive::{Deserialize, Serialize};
 use std::ops::Range;
 
 /// A cycle is a group of calls that are run asynchronously.
@@ -23,7 +24,7 @@ use std::ops::Range;
 ///
 /// In this example, first `print` will be executid while the file is being deleted,
 /// and the second `pritn` will be executed when the file has been deleted successfully.
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Cycle<'source> {
     pub calls: Vec<Call<'source>>,
     span: Range<usize>,

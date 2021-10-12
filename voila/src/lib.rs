@@ -18,8 +18,17 @@ mod parser;
 mod safety;
 
 pub fn run(source: String, dir: std::path::PathBuf, recursive: bool) -> Result<(), Box<dyn Error>> {
-    let ast = ast::parse_script(&source)?;
-    ast.ub_checks(&source)?;
-    interpreter::run(ast, dir, recursive)?; // wait interpreter to finish
+    exec(get_checked_ast(&source)?, dir, recursive)?;
+    Ok(())
+}
+
+pub fn get_checked_ast(source: &str) -> Result<ast::Script, Box<dyn Error>> {
+    let ast = ast::parse_script(source)?;
+    ast.ub_checks(source)?;
+    Ok(ast)
+}
+
+pub fn exec(ast: ast::Script, dir: std::path::PathBuf, recursive: bool) -> Result<(), Box<dyn Error>> {
+    interpreter::run(ast, dir, recursive)?;
     Ok(())
 }
