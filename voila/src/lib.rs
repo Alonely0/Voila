@@ -28,7 +28,11 @@ pub fn get_checked_ast(source: &str) -> Result<ast::Script, Box<dyn Error>> {
     Ok(ast)
 }
 
-pub fn exec(ast: ast::Script, dir: std::path::PathBuf, recursive: bool) -> Result<(), Box<dyn Error>> {
+pub fn exec(
+    ast: ast::Script,
+    dir: std::path::PathBuf,
+    recursive: bool,
+) -> Result<(), Box<dyn Error>> {
     interpreter::run(ast, dir, recursive)?;
     Ok(())
 }

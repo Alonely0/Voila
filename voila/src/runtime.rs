@@ -8,9 +8,11 @@ pub fn compile(args: crate::cli::Cli) -> Result<(), String> {
     crate::compiler::compile([
         &format!(
             "{:?}",
-            bincode::serialize(&voila::get_checked_ast(&args.source).map_err(|e| format!("{e}"))?).unwrap()
+            bincode::serialize(&voila::get_checked_ast(&args.source).map_err(|e| format!("{e}"))?)
+                .unwrap()
         ),
         args.dir.as_os_str().to_str().unwrap(),
         &format!("{r}", r = args.recursive),
-    ]).map_err(|e| e.to_string())
+    ])
+    .map_err(|e| e.to_string())
 }
