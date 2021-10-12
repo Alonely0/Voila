@@ -2,8 +2,10 @@ use super::parser::{ContextLevel, Parse, ParseErrorKind, ParseRes, Parser, Wante
 use super::HasSpan;
 use super::Str;
 use super::Token;
+use serde_derive::{Deserialize, Serialize};
 use std::fmt;
 use std::io;
+
 use std::ops::Range;
 
 /// Represents a call in the script like
@@ -19,7 +21,7 @@ use std::ops::Range;
 /// `shell` won't be in the list, since you can do absolutely anything
 /// when we give you a shell. The shell is an escape hatch to enable the
 /// integration of Voila to the rest of the system.
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Call<'source> {
     pub function_kind: Function,
     pub arguments: Vec<Str<'source>>,
@@ -32,7 +34,7 @@ pub struct Call<'source> {
 /// # Panic
 /// The interpreter will panic when the function has not
 /// enough arguments to execute.
-#[derive(Debug, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum Function {
     /// Create a directory with its parents recursively.
     /// This function is not destructive, it will error
@@ -258,8 +260,8 @@ impl<'source> Parse<'source> for Call<'source> {
     }
 }
 use crate::interpreter::{Cache, ErrorKind, ExprResult};
-use std::path::PathBuf;
 use path_absolutize::*;
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 pub fn run_call(call: &Call, cache: Arc<Mutex<Cache>>) -> Result<(), ErrorKind> {

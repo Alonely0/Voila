@@ -1,17 +1,20 @@
 use super::HasSpan;
 use super::Lookup;
 use crate::parser::{ContextLevel, Parse, ParseErrorKind, ParseRes, Parser, Token};
+use serde_derive::{Deserialize, Serialize};
 use std::ops::Range;
+use std::marker::PhantomData;
 
 /// An interpolated string, which supports spaces in between and variables:
 /// `@name.file is broken` will resolve to "<name of the file> is broken" on each
 /// instance.
 ///
 /// The interpolated string maintains an invariant: its sequence is never empty
-#[derive(Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Str<'source> {
-    pub sequence: Vec<StrComponent<'source>>,
+    pub sequence: Vec<StrComponent>,
     span: Range<usize>,
+    phantom: PhantomData<&'source Self>,
 }
 
 impl HasSpan for Str<'_> {
@@ -20,24 +23,25 @@ impl HasSpan for Str<'_> {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum StrComponent<'source> {
-    Literal(&'source str),
+#[derive(Serialize, Deserialize, Debug, Clone, Eq, PartialEq)]
+pub enum StrComponent {
+    Literal(String),
     Lookup(Lookup),
 }
 
 impl<'source> Str<'source> {
-    fn new(first_component: StrComponent<'source>, component_span: Range<usize>) -> Self {
+    fn new(first_component: StrComponent, component_span: Range<usize>) -> Self {
         Self {
             sequence: vec![first_component],
             span: component_span,
+            phantom: PhantomData,
         }
     }
     /// Extend the interpolation with a component, returning the new component span (might be
     /// modified)
     fn extend(
         &mut self,
-        component: StrComponent<'source>,
+        component: StrComponent,
         last_component_span: Range<usize>,
         mut component_span: Range<usize>,
         full_input: &'source str,
@@ -49,13 +53,13 @@ impl<'source> Str<'source> {
                     // we can just extend the source.
                     component_span.start = last_component_span.start;
                     let last_ref = self.sequence.last_mut().unwrap();
-                    *last_ref = StrComponent::Literal(&full_input[component_span.clone()]);
+                    *last_ref = StrComponent::Literal(full_input[component_span.clone()].to_string());
                 } else {
                     // if the last component wasa variable, we will extend the span to accomodate
                     // the space in between
                     component_span.start = last_component_span.end;
                     self.sequence
-                        .push(StrComponent::Literal(&full_input[component_span.clone()]));
+                        .push(StrComponent::Literal(full_input[component_span.clone()].to_string()));
                 }
             },
             StrComponent::Lookup(_) => {
@@ -64,11 +68,11 @@ impl<'source> Str<'source> {
                     // the spece in between
                     let last_component_span = last_component_span.start..component_span.start;
                     let last_ref = self.sequence.last_mut().unwrap();
-                    *last_ref = StrComponent::Literal(&full_input[last_component_span]);
+                    *last_ref = StrComponent::Literal(full_input[last_component_span].to_string());
                 } else {
                     // otherwise, we will put the spaces as a literal into the sequence
                     self.sequence.push(StrComponent::Literal(
-                        &full_input[last_component_span.end..component_span.start],
+                        full_input[last_component_span.end..component_span.start].to_string(),
                     ));
                 }
                 // now we can safely push the lookup, since we already handled the space before it
@@ -81,7 +85,7 @@ impl<'source> Str<'source> {
 
 // this parser is more of a helper than anything, to avoid repeating the matching code
 // for unknown variables and so.
-impl<'source> Parse<'source> for (StrComponent<'source>, Range<usize>) {
+impl<'source> Parse<'source> for (StrComponent, Range<usize>) {
     fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
         let res = match parser.current_token()?.unwrap() {
             Token::Variable => {
@@ -91,7 +95,7 @@ impl<'source> Parse<'source> for (StrComponent<'source>, Range<usize>) {
                         Ok(lookup) => StrComponent::Lookup(lookup),
                         // unknown variables become literals with the at they came with
                         Err(e) if matches!(e.kind, ParseErrorKind::UnknownVariable) => {
-                            StrComponent::Literal(parser.current_token_source())
+                            StrComponent::Literal(parser.current_token_source().to_string())
                         },
                         // other errors are not caught though
                         Err(e) => return Err(e),
@@ -100,7 +104,7 @@ impl<'source> Parse<'source> for (StrComponent<'source>, Range<usize>) {
                 )
             },
             Token::Identifier => (
-                StrComponent::Literal(parser.current_token_source()),
+                StrComponent::Literal(parser.current_token_source().to_string()),
                 parser.current_token_span().clone(),
             ),
             _ => unreachable!("The main str parser should have stopped on these already."),
@@ -154,14 +158,5 @@ impl interpreter::Resolve for Str<'_> {
             }
         }
         Ok(str.into())
-    }
-}
-
-impl<'source> StrComponent<'source> {
-    pub fn get_plain(&self) -> &'source str {
-        match self {
-            Self::Lookup(x) => x.as_str(),
-            Self::Literal(x) => x,
-        }
     }
 }

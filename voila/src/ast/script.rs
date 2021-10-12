@@ -1,8 +1,9 @@
 use super::Target;
+use serde_derive::{Deserialize, Serialize};
 
 // The script doesn't have a span, since it represents the **entire** script.
 /// The whole voila script to execute, with a bunch of [Target]s
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Script<'source> {
     pub targets: Vec<Target<'source>>,
 }
@@ -43,4 +44,10 @@ pub fn run_script(
     //         tx.send(res).unwrap();
     //     });
     // }
+}
+
+impl<'source> From<Vec<u8>> for Script<'source> {
+    fn from(s: Vec<u8>) -> Self {
+        bincode::deserialize(&s[..]).unwrap()
+    }
 }

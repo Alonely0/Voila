@@ -7,15 +7,15 @@ use std::error::Error;
 use std::fmt;
 use std::ops::Range;
 
-type Arg<'source> = Vec<StrComponent<'source>>;
-type Args<'source> = Vec<Arg<'source>>;
+type Arg = Vec<StrComponent>;
+type Args = Vec<Arg>;
 
 /// Contains I/O operations
 #[derive(Debug)]
-struct IO<'source> {
-    created: Option<Args<'source>>,
-    accessed: Option<Args<'source>>,
-    modified: Option<Args<'source>>,
+struct IO {
+    created: Option<Args>,
+    accessed: Option<Args>,
+    modified: Option<Args>,
     metadata: Metadata,
 }
 #[derive(Debug, Clone)]
@@ -85,12 +85,12 @@ impl fmt::Display for SafetyErrorKind {
     }
 }
 
-impl<'source> IO<'source> {
+impl IO {
     /// New [IO]
     fn new(
-        created: Option<Args<'source>>,
-        accessed: Option<Args<'source>>,
-        modified: Option<Args<'source>>,
+        created: Option<Args>,
+        accessed: Option<Args>,
+        modified: Option<Args>,
         metadata: Metadata,
     ) -> Self {
         Self {
@@ -174,7 +174,7 @@ impl<'source> IO<'source> {
     /// Search matches through all operations types
     /// of an [IO] and returns vectors representing matches
     fn cross_search_matches(&self) -> [Option<usize>; 3] {
-        let s = |v: &Option<Args<'source>>, p: &Option<Args<'source>>| {
+        let s = |v: &Option<Args>, p: &Option<Args>| {
             i!(v)
                 .map(|x| {
                     i!(p).position_first(|y| {
@@ -200,7 +200,7 @@ impl<'source> IO<'source> {
     /// Search matches through operation types
     /// of an [IO] and returns vectors representing matches
     fn plain_search_matches(&self) -> [Option<usize>; 3] {
-        let s = |v: &Option<Args<'source>>| {
+        let s = |v: &Option<Args>| {
             i!(v)
                 .map(|x| i!(v).position_first(|y| x == y) != i!(v).position_last(|y| x == y))
                 .position_first(|x| x)
@@ -322,7 +322,7 @@ impl<'source> crate::ast::Script<'source> {
         }
         Ok(())
     }
-    fn action(&self, func: Function, args: Args<'source>, metadata: Metadata) -> IO<'source> {
+    fn action(&self, func: Function, args: Args, metadata: Metadata) -> IO {
         use Function::*;
 
         let mut created = None;
