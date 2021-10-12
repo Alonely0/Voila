@@ -17,6 +17,8 @@
 
 Voila is a DSL (domain-specific language) for interacting in a fast, reliable, versatile, safe & multithreaded way with files & directories. It is based on a CLI tool, although you can write your Voila code and do something like this `voila DIRECTORY "$(cat operations.vla)"`. Voila is mainly tested in Linux, so should work better in \*nix (Linux, \*BSD, macOS, etc) than in Windows-based operating systems, but shouldn't be any problems on them. Voila is completely cross-platform.
 
+Voila scripts are interpreted, but optionally you can [compile it](https://github.com/Alonely0/Voila/wiki/Compiling-a-Voila-script) like you'd do with other programming languages.
+
 # Documentation
 You can find the docs in the [wiki](https://github.com/Alonely0/Voila/wiki/Documentation).
 
