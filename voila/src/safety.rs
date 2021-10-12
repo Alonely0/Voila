@@ -335,7 +335,7 @@ impl<'source> crate::ast::Script<'source> {
             Shell { safe: true } => {
                 created = Some(args.clone());
                 accessed = Some(args.clone());
-                modified = Some(args.clone());
+                modified = Some(args);
             },
             Delete { safe: true } => {
                 modified = Some(vec![args.get(0).unwrap_or(&Vec::new()).to_vec()])

@@ -1,7 +1,7 @@
 pub use std::process::exit;
 
 pub fn interpret(args: crate::cli::Cli) -> Result<(), String> {
-    crate::voila::run(args.source, args.dir, args.recursive).map_err(|e| format!("{e}"))
+    super::run(args.source, args.dir, args.recursive).map_err(|e| format!("{e}"))
 }
 
 pub fn compile(args: crate::cli::Cli) -> Result<(), String> {

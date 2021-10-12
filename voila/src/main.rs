@@ -3,8 +3,8 @@
 #![feature(decl_macro)]
 #![allow(clippy::upper_case_acronyms)]
 
-use voila;
-use voila::macros::println_on_debug;
+use voila::*;
+use macros::println_on_debug;
 
 mod cli;
 mod compiler;
