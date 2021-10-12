@@ -19,23 +19,25 @@ pub fn compile(vars: [&str; 3]) -> Result<(), &str> {
     }
 
     // clone repo
+    const GIT_ERR_MSG: &str = "Could not download required files to compile the code. Make sure git is installed and in your PATH:\nhttps://git-scm.com/";
     let git_exit_status = process::Command::new("git")
         .arg("clone")
         .arg("https://github.com/Alonely0/Voila.git")
         .arg(target_dir)
         .status()
-        .unwrap()
+        .map_err(|_| GIT_ERR_MSG)?
         .code()
         .unwrap_or(0);
 
     if git_exit_status > 0 {
-        return Err("Could not download required files to compile the code.");
+        return Err(GIT_ERR_MSG);
     }
 
     // set dir so cargo knows where to run
     env::set_current_dir(target_dir).unwrap();
 
     // launch compiler & get exit code
+    const COMPILER_ERR_MSG: &str = "Could not compile. Make sure Cargo (a wrapper over rust's compiler) is installed, it's in your PATH and the nightly toolchain is installed:\nhttps://www.rust-lang.org/tools/install";
     let compiler_exit_status = process::Command::new("cargo")
         .env("v_code", vars[0])
         .env("v_path", vars[1])
@@ -47,7 +49,7 @@ pub fn compile(vars: [&str; 3]) -> Result<(), &str> {
         .args(["--bin", "compiled_voila"])
         .arg(format!("--out-dir={p}", p = pwd.display()))
         .status()
-        .unwrap()
+        .map_err(|_| COMPILER_ERR_MSG)?
         .code()
         .unwrap_or(0);
 
@@ -58,7 +60,7 @@ pub fn compile(vars: [&str; 3]) -> Result<(), &str> {
     fs::remove_dir_all(target_dir).unwrap();
 
     if compiler_exit_status > 0 {
-        Err("Could not compile. Make sure Cargo (a wrapper over rust's compiler) is installed, it's in your PATH and the nightly toolchain is installed:\nhttps://www.rust-lang.org/tools/install")
+        Err(COMPILER_ERR_MSG)
     } else {
         Ok(())
     }
