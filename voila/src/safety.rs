@@ -164,6 +164,8 @@ impl IO {
         "readonly",
         "elf",
         "txt",
+        "content",
+        "line",
         "hidden",
         "size",
         "sum",

@@ -72,7 +72,7 @@ impl Hasher {
     }
 }
 
-fn with_blocks<F, R: Read>(reader: &mut R, mut cont: F) -> Result<(), io::Error>
+pub fn with_blocks<F, R: Read>(reader: &mut R, mut cont: F) -> Result<(), io::Error>
 where
     F: FnMut(&[u8]),
     R: Read,

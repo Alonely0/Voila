@@ -16,6 +16,35 @@ macro_rules! mod_use {
 }
 
 #[macro_export]
+macro_rules! no_spec {
+    ($name:literal, $value:expr, $var_spec:expr) => {{
+        if $var_spec.is_some() {
+            Err(ParseErrorKind::VarHasNoSpec($name))
+        } else {
+            Ok($value)
+        }
+    }};
+}
+
+#[macro_export]
+macro_rules! spec {
+    ($spec:literal, $type:tt, $ctor:expr, $var_spec:expr) => {
+        $var_spec
+            .ok_or(ParseErrorKind::VarNeedsSpec {
+                var_name: $spec,
+                options: &$type::OPTS,
+            })
+            .and_then(|var| {
+                $type::detect(var).ok_or(ParseErrorKind::InvalidSpecifier {
+                    variable: $spec,
+                    options: &$type::OPTS,
+                })
+            })
+            .map($ctor)
+    };
+}
+
+#[macro_export]
 macro_rules! i {
     { $x:expr } => {
     $x.as_ref()

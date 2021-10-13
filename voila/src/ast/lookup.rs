@@ -21,6 +21,10 @@ pub enum Lookup {
     Elf,
     /// Whether the file is a valid text file
     Text,
+    /// File content
+    Content,
+    /// Access to a specific line of the file
+    Line(usize),
     /// Whether the file is hidden
     Hidden,
     /// The file size
@@ -35,6 +39,8 @@ pub enum Lookup {
     LastAccess(TimeStamp),
 }
 
+use Lookup::*;
+
 impl Lookup {
     const VAR_OPTIONS: &'static [&'static str] = &[
         "name",
@@ -46,6 +52,8 @@ impl Lookup {
         "readonly",
         "elf",
         "txt",
+        "content",
+        "lines",
         "hidden",
         "size",
         "sum",
@@ -55,21 +63,23 @@ impl Lookup {
     ];
     pub fn as_str<'source>(&self) -> &'source str {
         match self {
-            Self::Name => "name",
-            Self::Path => "path",
-            Self::Parent => "parent",
+            Name => "name",
+            Path => "path",
+            Parent => "parent",
             #[cfg(unix)]
-            Self::OwnerID => "ownerID",
-            Self::Empty => "empty",
-            Self::Readonly => "readonly",
-            Self::Elf => "elf",
-            Self::Text => "txt",
-            Self::Hidden => "hidden",
-            Self::Size(_) => "size=",
-            Self::Sum(_) => "sum=",
-            Self::Creation(_) => "creation=",
-            Self::LastModification(_) => "lastChange",
-            Self::LastAccess(_) => "lastAccess",
+            OwnerID => "ownerID",
+            Empty => "empty",
+            Readonly => "readonly",
+            Elf => "elf",
+            Text => "txt",
+            Content => "content",
+            Line(_) => "lines",
+            Hidden => "hidden",
+            Size(_) => "size=",
+            Sum(_) => "sum=",
+            Creation(_) => "creation=",
+            LastModification(_) => "lastChange",
+            LastAccess(_) => "lastAccess",
         }
     }
 }
@@ -83,6 +93,8 @@ impl std::fmt::Display for Lookup {
 impl Parse<'_> for Lookup {
     // this parser assumes that the parser is already at `Token::Variable`
     fn parse(parser: &mut Parser) -> ParseRes<Self> {
+        use crate::{no_spec, spec};
+
         let full_var = parser.current_token_source().strip_prefix('@').unwrap();
         let (var_name, var_spec): (&str, Option<&str>) = full_var
             .find('=')
@@ -91,51 +103,33 @@ impl Parse<'_> for Lookup {
                 (a, Some(&b[1..]))
             })
             .unwrap_or((full_var, None));
-        macro_rules! no_spec {
-            ($name:literal, $value:expr) => {{
-                if var_spec.is_some() {
-                    Err(ParseErrorKind::VarHasNoSpec($name))
-                } else {
-                    Ok($value)
-                }
-            }};
-        }
-        macro_rules! spec {
-            ($spec:literal, $type:tt, $ctor:expr) => {
-                var_spec
-                    .ok_or(ParseErrorKind::VarNeedsSpec {
-                        var_name: $spec,
-                        options: &$type::OPTS,
-                    })
-                    .and_then(|var| {
-                        $type::detect(var).ok_or(ParseErrorKind::InvalidSpecifier {
-                            variable: $spec,
-                            options: &$type::OPTS,
-                        })
-                    })
-                    .map($ctor)
-            };
-        }
         match var_name {
-            "name" => no_spec!("name", Self::Name),
-            "path" => no_spec!("path", Self::Path),
-            "parent" => no_spec!("parent", Self::Parent),
+            "name" => no_spec!("name", Name, var_spec),
+            "path" => no_spec!("path", Path, var_spec),
+            "parent" => no_spec!("parent", Parent, var_spec),
             #[cfg(unix)]
-            "ownerID" => no_spec!("ownerID", Self::OwnerID),
-            "empty" => no_spec!("empty", Self::Empty),
-            "readonly" => no_spec!("readonly", Self::Readonly),
-            "elf" => no_spec!("elf", Self::Elf),
-            "txt" => no_spec!("txt", Self::Text),
-            "hidden" => no_spec!("hidden", Self::Hidden),
-            "size" => spec!("size", SizeLabel, Self::Size),
-            "sum" => spec!("sum", SumKind, Self::Sum),
-            "creation" => spec!("creation", TimeStamp, Self::Creation),
-            "lastChange" => spec!("lastChange", TimeStamp, Self::LastModification),
-            "lastAccess" => spec!("lastAccess", TimeStamp, Self::LastAccess),
+            "ownerID" => no_spec!("ownerID", OwnerID, var_spec),
+            "empty" => no_spec!("empty", Empty, var_spec),
+            "readonly" => no_spec!("readonly", Readonly, var_spec),
+            "elf" => no_spec!("elf", Elf, var_spec),
+            "txt" => no_spec!("txt", Text, var_spec),
+            "content" => no_spec!("content", Content, var_spec),
+            "line" => spec!("line", usize, Line, var_spec),
+            "hidden" => no_spec!("hidden", Hidden, var_spec),
+            "size" => spec!("size", SizeLabel, Size, var_spec),
+            "sum" => spec!("sum", SumKind, Sum, var_spec),
+            "creation" => spec!("creation", TimeStamp, Creation, var_spec),
+            "lastChange" => spec!("lastChange", TimeStamp, LastModification, var_spec),
+            "lastAccess" => spec!("lastAccess", TimeStamp, LastAccess, var_spec),
             _ => Err(ParseErrorKind::UnknownVariable),
         }
         .map_err(|e| parser.error(e))
     }
+}
+
+trait Specifier<T: Sized, const O: usize> {
+    const OPTS: [&'static str; O];
+    fn detect(source: &str) -> Option<T>;
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -147,7 +141,7 @@ pub enum SizeLabel {
     Bytes,
 }
 
-impl SizeLabel {
+impl Specifier<Self, 5> for SizeLabel {
     const OPTS: [&'static str; 5] = ["tb", "gb", "mb", "kb", "bs"];
     fn detect(source: &str) -> Option<Self> {
         Some(match source {
@@ -182,20 +176,8 @@ pub enum SumKind {
     Sha384,
     Sha512,
 }
-impl std::fmt::Display for SumKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        f.write_str(match self {
-            Self::Sha1 => "sha1",
-            Self::Md5 => "md5",
-            Self::Sha224 => "sha224",
-            Self::Sha256 => "sha256",
-            Self::Sha384 => "sha384",
-            Self::Sha512 => "sha512",
-        })
-    }
-}
 
-impl SumKind {
+impl Specifier<Self, 6> for SumKind {
     const OPTS: [&'static str; 6] = ["md5", "sha224", "sha256", "sha384", "sha512", "sha1"];
     fn detect(source: &str) -> Option<Self> {
         Some(match source {
@@ -210,12 +192,36 @@ impl SumKind {
     }
 }
 
+impl std::fmt::Display for SumKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Sha1 => "sha1",
+            Self::Md5 => "md5",
+            Self::Sha224 => "sha224",
+            Self::Sha256 => "sha256",
+            Self::Sha384 => "sha384",
+            Self::Sha512 => "sha512",
+        })
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TimeStamp {
     /// Presented to the user as yyyy-mm-dd
     Date,
     /// Presented to the user as hh:mm:ss
     Hour,
+}
+
+impl Specifier<Self, 2> for TimeStamp {
+    const OPTS: [&'static str; 2] = ["date", "hour"];
+    fn detect(source: &str) -> Option<Self> {
+        Some(match source {
+            "date" => Self::Date,
+            "hour" => Self::Hour,
+            _ => return None,
+        })
+    }
 }
 
 impl std::fmt::Display for TimeStamp {
@@ -227,37 +233,33 @@ impl std::fmt::Display for TimeStamp {
     }
 }
 
-impl TimeStamp {
-    const OPTS: [&'static str; 2] = ["date", "hour"];
+impl Specifier<Self, 1> for usize {
+    const OPTS: [&'static str; 1] = ["any positive integer"];
     fn detect(source: &str) -> Option<Self> {
-        Some(match source {
-            "date" => Self::Date,
-            "hour" => Self::Hour,
-            _ => return None,
-        })
+        source.parse().ok()
     }
 }
 
-use crate::interpreter::{Cache, CachedResolve, ErrorKind, ExprResult, Resolve};
+use crate::interpreter::{with_blocks, Cache, CachedResolve, ErrorKind, ExprResult, Resolve};
 use std::time::SystemTime;
 impl CachedResolve for Lookup {
     fn cached_resolve(&self, cache: &mut Cache) -> Result<ExprResult, ErrorKind> {
         #[cfg(unix)]
         use std::os::unix::fs::MetadataExt;
         match self {
-            Self::Name => Ok(cache
+            Name => Ok(cache
                 .get_path()
                 .file_name()
                 .and_then(std::ffi::OsStr::to_str)
                 .unwrap()
                 .into()),
-            Self::Path => cache
+            Path => cache
                 .get_path()
                 .canonicalize()
                 .map_err(ErrorKind::from)
                 .map(|path| path.to_str().unwrap().into()),
             // TODO: add error for not having parent
-            Self::Parent => cache
+            Parent => cache
                 .get_path()
                 .parent()
                 .unwrap()
@@ -266,19 +268,19 @@ impl CachedResolve for Lookup {
                 .map(|path| path.to_str().unwrap().into()),
 
             #[cfg(unix)]
-            Self::OwnerID => cache
+            OwnerID => cache
                 .get_file_metadata()
                 .map(|m| m.uid() as f64)
                 .map(ExprResult::from),
-            Self::Empty => cache
+            Empty => cache
                 .get_file_metadata()
                 .map(|m| m.len() <= 1)
                 .map(ExprResult::from),
-            Self::Readonly => cache
+            Readonly => cache
                 .get_file_metadata()
                 .map(|m| m.permissions().readonly())
                 .map(ExprResult::from),
-            Self::Elf => {
+            Elf => {
                 use std::io::Read;
                 use std::io::Seek;
                 let mut rb = [0u8; 4];
@@ -288,10 +290,11 @@ impl CachedResolve for Lookup {
                 let size = br.read(&mut rb).map_err(ErrorKind::from)?;
                 Ok(size >= 4 && rb == [0x7f, b'E', b'L', b'F']).map(ExprResult::from)
             },
-            Self::Text => {
+            Text => {
                 use std::io::Read;
                 use std::io::Seek;
                 use std::io::SeekFrom;
+
                 let bufreader = cache.get_file_mut()?;
                 bufreader.seek(SeekFrom::End(-1))?;
                 let mut buf = [0u8; 1];
@@ -302,7 +305,30 @@ impl CachedResolve for Lookup {
                 };
                 Ok(last == Some(b'\n') || last == Some(b'\r')).map(ExprResult::from)
             },
-            Self::Hidden => {
+            Content => {
+                use std::ops::Deref;
+
+                let mut reader = cache.get_file_mut()?;
+                let mut buffer = Vec::new();
+
+                with_blocks(&mut reader, |block| buffer.extend_from_slice(block)).unwrap_or(());
+
+                Ok(String::from_utf8_lossy(&buffer).deref().into())
+            },
+            Line(l) => {
+                use std::io::BufRead;
+
+                let reader = cache.get_file_mut().unwrap();
+                let offset = vec![Ok(String::from(""))].into_iter();
+
+                Ok(offset
+                    .chain(reader.lines())
+                    .nth(*l)
+                    .unwrap_or_else(|| Ok(String::new()))
+                    .unwrap_or(String::new())
+                    .into())
+            },
+            Hidden => {
                 #[cfg(not(any(unix, windows)))]
                 {
                     println!("`hidden` variable is not natively supported in the current OS, falling back to unix implementation");
@@ -328,21 +354,21 @@ impl CachedResolve for Lookup {
                     )) // https://docs.microsoft.com/en-us/windows/win32/fileio/file-attribute-constants
                 }
             },
-            Self::Creation(ts) => {
+            Creation(ts) => {
                 let created_time = cache.get_file_metadata()?.created()?;
                 Ok(get_timestamp(created_time, ts))
             },
-            Self::LastModification(ts) => {
+            LastModification(ts) => {
                 let mod_time = cache.get_file_metadata()?.modified()?;
                 Ok(get_timestamp(mod_time, ts))
             },
-            Self::LastAccess(ts) => {
+            LastAccess(ts) => {
                 let last_access_time = cache.get_file_metadata()?.created()?;
                 Ok(get_timestamp(last_access_time, ts))
             },
             // note: think about using Decimal (for the 2 decimal imposed precision):
             // https://crates.io/crates/rust-decimal
-            Self::Size(sz) => Ok(cache.get_file_metadata()?.len() as f64
+            Size(sz) => Ok(cache.get_file_metadata()?.len() as f64
                 / match sz {
                     SizeLabel::Bytes => 1.0,
                     SizeLabel::KiloBytes => 1_000.0,
@@ -351,7 +377,7 @@ impl CachedResolve for Lookup {
                     SizeLabel::TeraBytes => 1_000_000_000_000.0,
                 })
             .map(ExprResult::from),
-            Self::Sum(sum) => {
+            Sum(sum) => {
                 let hasher = Hasher::select_from_sum(*sum);
                 hasher
                     .hash_reader(cache.get_file_mut()?)
