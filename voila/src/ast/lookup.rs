@@ -325,7 +325,7 @@ impl CachedResolve for Lookup {
                     .chain(reader.lines())
                     .nth(*l)
                     .unwrap_or_else(|| Ok(String::new()))
-                    .unwrap_or(String::new())
+                    .unwrap_or_default()
                     .into())
             },
             Hidden => {
