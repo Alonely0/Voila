@@ -207,7 +207,7 @@ impl IO {
                 .map(|x| i!(v).position_first(|y| x == y) != i!(v).position_last(|y| x == y))
                 .position_first(|x| x)
         };
-        [s(&self.created), s(&self.accessed), s(&self.modified)]
+        [s(&self.created), None, s(&self.modified)] // cache locks prevent accessing file descriptors at the same time
     }
     /// Get metadata of a specific value in a combined [IO]
     fn get_real_md(
