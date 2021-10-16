@@ -79,5 +79,12 @@ fn get_target_dir() -> String {
             .unwrap())
     );
     #[cfg(not(any(unix, windows)))]
-    return format!("{p}/.voila", p = env::current_dir());
+    return format!(
+        "{p}/.voila",
+        p = env::current_dir()
+            .unwrap()
+            .into_os_string()
+            .into_string()
+            .unwrap()
+    );
 }
