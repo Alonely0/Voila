@@ -2,8 +2,8 @@ use super::HasSpan;
 use super::Lookup;
 use crate::parser::{ContextLevel, Parse, ParseErrorKind, ParseRes, Parser, Token};
 use serde_derive::{Deserialize, Serialize};
-use std::ops::Range;
 use std::marker::PhantomData;
+use std::ops::Range;
 
 /// An interpolated string, which supports spaces in between and variables:
 /// `@name.file is broken` will resolve to "<name of the file> is broken" on each
@@ -53,13 +53,15 @@ impl<'source> Str<'source> {
                     // we can just extend the source.
                     component_span.start = last_component_span.start;
                     let last_ref = self.sequence.last_mut().unwrap();
-                    *last_ref = StrComponent::Literal(full_input[component_span.clone()].to_string());
+                    *last_ref =
+                        StrComponent::Literal(full_input[component_span.clone()].to_string());
                 } else {
                     // if the last component wasa variable, we will extend the span to accomodate
                     // the space in between
                     component_span.start = last_component_span.end;
-                    self.sequence
-                        .push(StrComponent::Literal(full_input[component_span.clone()].to_string()));
+                    self.sequence.push(StrComponent::Literal(
+                        full_input[component_span.clone()].to_string(),
+                    ));
                 }
             },
             StrComponent::Lookup(_) => {
@@ -107,6 +109,17 @@ impl<'source> Parse<'source> for (StrComponent, Range<usize>) {
                 StrComponent::Literal(parser.current_token_source().to_string()),
                 parser.current_token_span().clone(),
             ),
+            Token::RawIdentifier => {
+                // get token source character and remove colons
+                let mut tok_chars = parser.current_token_source().chars();
+                tok_chars.next();
+                tok_chars.next_back();
+
+                (
+                    StrComponent::Literal(tok_chars.collect()),
+                    parser.current_token_span().clone(),
+                )
+            },
             _ => unreachable!("The main str parser should have stopped on these already."),
         };
         parser.accept_current();
@@ -117,12 +130,13 @@ impl<'source> Parse<'source> for (StrComponent, Range<usize>) {
 impl<'source> Parse<'source> for Str<'source> {
     // this parser gets all the variables and identifiers that it can and
     // mashes them up into a Str.
+    #[allow(clippy::blocks_in_if_conditions)] // avoid warning `matches!` macro triggers
     fn parse(parser: &mut Parser<'source>) -> ParseRes<Self> {
         parser.with_context(ContextLevel::InterpSeq, |parser| {
             let (mut str, mut last_span) =
                 {
                     parser.expect_one_of_tokens(
-                &[Token::Variable, Token::Identifier],
+                &[Token::Variable, Token::Identifier, Token::RawIdentifier],
                 Some("interpolated strings need at least one variable or string without spaces"),
             )?;
                     let (component, span) = parser.parse()?;
@@ -130,7 +144,12 @@ impl<'source> Parse<'source> for Str<'source> {
                 };
             while parser
                 .current_token()?
-                .filter(|tok| matches!(tok, Token::Variable | Token::Identifier))
+                .filter(|tok| {
+                    matches!(
+                        tok,
+                        Token::Variable | Token::Identifier | Token::RawIdentifier
+                    )
+                })
                 .is_some()
             {
                 let (next_component, next_span) = parser.parse()?;
