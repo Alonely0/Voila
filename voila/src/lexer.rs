@@ -9,6 +9,9 @@ pub enum Token {
     #[regex(r"[^@{}(),\s;]+")]
     Identifier,
 
+    #[regex(r#"["']([^'"]+)["']"#)]
+    RawIdentifier,
+
     #[token(",")]
     Comma,
 
@@ -75,6 +78,7 @@ impl fmt::Display for Token {
             Self::LEq => write!(f, "operator `<=`"),
             Self::LThan => write!(f, "operator `<`"),
             Self::Identifier => write!(f, "identifier"),
+            Self::RawIdentifier => write!(f, "raw identifier"),
             Self::LogicAnd => write!(f, "operator `&&`"),
             Self::LogicOr => write!(f, "operator `||`"),
             Self::Match => write!(f, "match operator `~=`"),
