@@ -7,7 +7,7 @@ readme = "../README.md"
 documentation = "https://github.com/Alonely0/voila/wiki"
 homepage = "https://github.com/Alonely0/voila/"
 repository = "https://github.com/Alonely0/voila/"
-version = "3.2.1"
+version = "3.3.0"
 edition = "2021"
 exclude = [
     "ROADMAP.md",
