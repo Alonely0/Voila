@@ -2,9 +2,14 @@
 #![feature(format_args_capture)]
 #![feature(once_cell)]
 #![feature(decl_macro)]
-#![feature(option_result_unwrap_unchecked)]
 #![feature(never_type)]
 #![allow(dead_code)]
+
+#[cfg(test)]
+const TEST_SCRIPT: &str = "";
+
+#[cfg(test)]
+const TEST_SCRIPT_TOKENS: Vec<String> = vec![];
 
 use std::error::Error;
 

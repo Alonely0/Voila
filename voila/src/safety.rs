@@ -334,9 +334,7 @@ impl<'source> crate::ast::Script<'source> {
         match func {
             Mkdir { safe: true } | Create { safe: true } => created = Some(args),
             Print { safe: true } => accessed = Some(args),
-            Shell { safe: true } => {
-                created = Some(args.clone());
-                accessed = Some(args.clone());
+            Shell { safe: true } | Child { safe: true } => {
                 modified = Some(args);
             },
             Delete { safe: true } => {

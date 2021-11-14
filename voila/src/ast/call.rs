@@ -120,6 +120,16 @@ pub enum Function {
     /// # Safety
     /// `create` will modify the file system!
     Create { safe: bool },
+    /// Execute an executable as a child process, ignoring the cycle.await
+    ///
+    /// # Call format
+    /// `child` receives either a binary or a path pointing to a executable. All other arguments
+    /// are passed as arguments
+    ///
+    /// # Safety
+    /// As safe as the executable is. Like in the shell function, the safety checker will treat
+    /// arguments as access, modify and created as has 0 information about what the executable will do
+    Child { safe: bool },
 }
 
 impl Function {
@@ -132,7 +142,8 @@ impl Function {
             Self::Delete { safe: _ }
             | Self::Shell { safe: _ }
             | Self::Mkdir { safe: _ }
-            | Self::Create { safe: _ } => 1,
+            | Self::Create { safe: _ }
+            | Self::Child { safe: _ } => 1,
             Self::Print { safe: _ } => 0,
         }
     }
@@ -147,20 +158,22 @@ impl Function {
             "mkdir" => Self::Mkdir { safe },
             "print" => Self::Print { safe },
             "create" => Self::Create { safe },
+            "child" => Self::Child { safe },
             _ => return None,
         })
     }
     fn is_safe(&self) -> bool {
         match *self {
-            Function::Mkdir { safe } => safe,
-            Function::Print { safe } => safe,
-            Function::Shell { safe } => safe,
-            Function::Delete { safe } => safe,
-            Function::Move { safe } => safe,
-            Function::Copy { safe } => safe,
-            Function::GzipCompress { safe } => safe,
-            Function::GzipDecompress { safe } => safe,
-            Function::Create { safe } => safe,
+            Function::Mkdir { safe }
+            | Function::Print { safe }
+            | Function::Shell { safe }
+            | Function::Delete { safe }
+            | Function::Copy { safe }
+            | Function::Move { safe }
+            | Function::GzipCompress { safe }
+            | Function::GzipDecompress { safe }
+            | Function::Create { safe }
+            | Function::Child { safe } => safe,
         }
     }
 }
@@ -177,6 +190,7 @@ impl fmt::Display for Function {
             Self::Mkdir { safe: _ } => "mkdir",
             Self::Print { safe: _ } => "print",
             Self::Create { safe: _ } => "create",
+            Self::Child { safe: _ } => "child",
         })
     }
 }
@@ -270,7 +284,7 @@ pub fn run_call(call: &Call, cache: Arc<Mutex<Cache>>) -> Result<(), ErrorKind> 
     // note: already considered streaming the arguments instead
     // of collecting all of them, but the number of arguments is very low (1 or 2),
     // so there is no real performance hit if we evaluate all of them now.
-    let args: Vec<String> = call
+    let mut args: Vec<String> = call
         .arguments
         .iter()
         // note: grabbing the cache lock on each argument separately to prevent locking
@@ -299,6 +313,7 @@ pub fn run_call(call: &Call, cache: Arc<Mutex<Cache>>) -> Result<(), ErrorKind> 
         Function::GzipCompress { safe: _ } => gzc(&args[0], &args[1]),
         Function::GzipDecompress { safe: _ } => gzd(&args[0], &args[1]),
         Function::Shell { safe: _ } => shell(args),
+        Function::Child { safe: _ } => child(&args.remove(0), args),
     }
     .map_err(Into::into)
 }
@@ -410,8 +425,9 @@ fn gzd(source: &str, dest: &str) -> Result<(), io::Error> {
     archive.unpack(dest)
 }
 
+use std::process::Command;
+
 fn shell(commands: Vec<String>) -> Result<(), io::Error> {
-    use std::process::Command;
     commands.into_iter().try_for_each(|cmd| {
         let complete_command: Result<_, std::io::Error> = {
             #[cfg(windows)]
@@ -443,4 +459,11 @@ fn shell(commands: Vec<String>) -> Result<(), io::Error> {
 
         Ok(())
     })
+}
+
+fn child(executable: &str, arguments: Vec<String>) -> Result<(), io::Error> {
+    Command::new(executable)
+        .args(arguments)
+        .spawn()
+        .map(|_| ())
 }

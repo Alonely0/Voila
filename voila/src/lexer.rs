@@ -92,3 +92,15 @@ impl fmt::Display for Token {
         }
     }
 }
+
+use tinytest::unit_test;
+
+unit_test!(
+    token_slices,
+    || {
+        Token::lexer(crate::TEST_SCRIPT)
+            .map(|tok| format!("{tok}"))
+            .collect::<Vec<String>>()
+    },
+    crate::TEST_SCRIPT_TOKENS
+);
