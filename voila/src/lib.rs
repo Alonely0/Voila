@@ -5,12 +5,6 @@
 #![feature(never_type)]
 #![allow(dead_code)]
 
-#[cfg(test)]
-const TEST_SCRIPT: &str = "";
-
-#[cfg(test)]
-const TEST_SCRIPT_TOKENS: Vec<String> = vec![];
-
 use std::error::Error;
 
 mod ast;
