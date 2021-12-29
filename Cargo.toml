@@ -1,5 +1,11 @@
+cargo-features = ["strip"]
+
 [workspace]
 members = [
     "voila",
     "compiled_voila",
 ]
+
+[profile.release]
+lto = true
+strip = true
