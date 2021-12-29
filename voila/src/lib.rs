@@ -1,5 +1,4 @@
 #![forbid(unsafe_code)] // unsafe code makes ferris get nervous
-#![feature(format_args_capture)]
 #![feature(once_cell)]
 #![feature(decl_macro)]
 #![feature(never_type)]
@@ -8,6 +7,7 @@
 use std::error::Error;
 
 mod ast;
+mod bytecode;
 mod cli;
 mod error;
 mod interpreter;

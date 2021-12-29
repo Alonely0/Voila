@@ -45,9 +45,3 @@ pub fn run_script(
     //     });
     // }
 }
-
-impl<'source> From<Vec<u8>> for Script<'source> {
-    fn from(s: Vec<u8>) -> Self {
-        bincode::deserialize(&s[..]).unwrap()
-    }
-}

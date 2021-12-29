@@ -410,10 +410,11 @@ fn gzc(source: &str, dest: &str) -> Result<(), io::Error> {
     let mut tar = tar::Builder::new(encoder);
     let source = PathBuf::from(source);
     if source.is_dir() {
-        tar.append_dir_all(source.clone(), source)
+        tar.append_dir_all(source.clone(), source)?;
     } else {
-        tar.append_path(source)
+        tar.append_path(source)?;
     }
+    tar.finish()
 }
 
 fn gzd(source: &str, dest: &str) -> Result<(), io::Error> {

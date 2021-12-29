@@ -1,43 +1,36 @@
+use flate2::read::GzDecoder;
 use std::env;
 use std::fs;
 use std::path::Path;
 use std::process;
+use tar::Archive;
 
-/// Compiles with cargo nightly a crate in a given path
-/// providing variables needed to run voila (e.g script's code)
-/// leaving the compiled binary in the current directory.
+// Error messages
+const COMPILER_ERR_MSG: &str = "Could not compile. Make sure Cargo (a wrapper over rust's compiler) is installed, it's in your PATH and the nightly toolchain is installed:\nhttps://www.rust-lang.org/tools/install";
+const TEMPDIR_ERR_MSG: &str = "Can't write to temporary directory";
+const ENV_READ_ERR_MSG: &str = "Can't access current directory";
+const ENV_WRITE_ERR_MSG: &str = "Can't change environment";
+
+/// Embeds a Voila Script into a binary through
+/// the `compiled_voila` crate. The source is
+/// statically linked into the binary.
 pub fn compile(vars: [&str; 3]) -> Result<(), &str> {
-    // save current dir
-    let pwd = env::current_dir().unwrap();
-
-    // set git clone path
+    let source = include_bytes!("../../code.tar.gz").as_ref();
+    let pwd = env::current_dir().map_err(|_| ENV_READ_ERR_MSG)?;
     let target_dir = &get_target_dir();
+    let mut archive = Archive::new(GzDecoder::new(source));
 
-    // delete target dir (if exists)
+    // prepare target dir
     if Path::new(target_dir).exists() {
-        fs::remove_dir_all(target_dir).unwrap();
+        fs::remove_dir_all(target_dir).map_err(|_| TEMPDIR_ERR_MSG)?;
     }
-
-    // clone repo
-    const GIT_ERR_MSG: &str = "Could not download required files to compile the code. Make sure git is installed and in your PATH:\nhttps://git-scm.com/";
-    let git_exit_status = process::Command::new("git")
-        .arg("clone")
-        .arg("https://github.com/Alonely0/Voila.git")
-        .arg(target_dir)
-        .status()
-        .map_err(|_| GIT_ERR_MSG)?
-        .code()
-        .unwrap_or(0);
-
-    if git_exit_status > 0 {
-        return Err(GIT_ERR_MSG);
-    }
+    fs::create_dir_all(target_dir).map_err(|_| TEMPDIR_ERR_MSG)?;
+    archive.unpack(target_dir).map_err(|_| TEMPDIR_ERR_MSG)?;
 
     // set dir so cargo knows where to run
-    env::set_current_dir(target_dir).unwrap();
+    env::set_current_dir(target_dir).map_err(|_| ENV_WRITE_ERR_MSG)?;
 
     // launch compiler & get exit code
-    const COMPILER_ERR_MSG: &str = "Could not compile. Make sure Cargo (a wrapper over rust's compiler) is installed, it's in your PATH and the nightly toolchain is installed:\nhttps://www.rust-lang.org/tools/install";
     let compiler_exit_status = process::Command::new("cargo")
         .env("v_code", vars[0])
         .env("v_path", vars[1])
@@ -54,10 +47,10 @@ pub fn compile(vars: [&str; 3]) -> Result<(), &str> {
         .unwrap_or(0);
 
     // restore to the actual current directory
-    env::set_current_dir(pwd).unwrap();
+    env::set_current_dir(pwd).map_err(|_| ENV_WRITE_ERR_MSG)?;
 
     // remove temporary files
-    fs::remove_dir_all(target_dir).unwrap();
+    // fs::remove_dir_all(target_dir).map_err(|_| "Can't write to temporary directory")?;
 
     if compiler_exit_status > 0 {
         Err(COMPILER_ERR_MSG)
@@ -66,7 +59,7 @@ pub fn compile(vars: [&str; 3]) -> Result<(), &str> {
     }
 }
 
-fn get_target_dir() -> String {
+pub fn get_target_dir() -> String {
     #[cfg(unix)]
     return "/tmp/Voila".to_string();
     #[cfg(windows)]

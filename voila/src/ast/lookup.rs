@@ -132,6 +132,7 @@ trait Specifier<T: Sized, const O: usize> {
     fn detect(source: &str) -> Option<T>;
 }
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SizeLabel {
     TeraBytes,
