@@ -56,7 +56,7 @@ tar = "0.4.37"
 flate2 = "1.0.21"
 
 [dev-dependencies]
-criterion = "0.3.5"
+criterion = "0.4.0"
 
 [lib]
 name = "voila"
