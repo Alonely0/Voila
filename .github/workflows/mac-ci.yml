@@ -26,7 +26,7 @@ jobs:
           toolchain: ${{ matrix.rust }}
 
       - name: Cache Rust
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Check local package
         run: cargo check --bin voila
