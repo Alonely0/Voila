@@ -21,7 +21,7 @@ jobs:
           components: rustfmt
 
       - name: Cache Rust
-        uses: Swatinem/rust-cache@v1
+        uses: Swatinem/rust-cache@v2
 
       - name: Format code with rustfmt
         uses: mbrobbel/rustfmt-check@master
